@@ -253,14 +253,32 @@ li {
 }
 
 .field-label.prominent {
-  font-size: 16px;
-  color: #0f172a;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  color: var(--subtle);
   font-weight: 600;
   margin-top: 10px;
 }
 
 .field-label.prominent.spaced {
   margin-top: 28px;
+}
+
+.field-group {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  background: #ffffff;
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.field-group-title {
+  font-size: 16px;
+  color: #0f172a;
+  font-weight: 600;
 }
 
 textarea {

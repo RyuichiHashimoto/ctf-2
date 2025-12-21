@@ -24,6 +24,7 @@ export default function App() {
   const [isRendering, setIsRendering] = useState(false);
   const [entryPoint, setEntryPoint] = useState("");
   const [attackData, setAttackData] = useState("");
+  const [attackTechnique, setAttackTechnique] = useState("");
   const [selectedPath, setSelectedPath] = useState(null);
 
   const cyRef = useRef(null);
@@ -393,7 +394,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Attack Path Visualizer</h1>
+        <h1>Attack Input</h1>
       </header>
       <div className="app-body">
         <section className="pane canvas-pane">
@@ -421,8 +422,8 @@ export default function App() {
                       <thead>
                         <tr>
                           <th>No</th>
-                          <th>Start Node</th>
-                          <th>End Node</th>
+                          <th>Attacked Node</th>
+                          <th>Asset</th>
                           <th>Risk</th>
                         </tr>
                       </thead>
@@ -461,62 +462,83 @@ export default function App() {
           <div className="pane-title">Settings</div>
           
           {error ? <div className="error">{error}</div> : null}
-          <div className="field-label prominent">Render Graph</div>
-          <div className="button-row">
-            <button
-              type="button"
-              className="secondary"
-              onClick={handleRender}
-              disabled
-            >
-              {isRendering ? "Rendering..." : "Render Graph"}
-            </button>
-          </div>
-          <div className="button-row">
-            <button type="button" onClick={handleRenderSample2}>
-              Render Sample
-            </button>
-            <button type="button" onClick={handleRenderSample}>
-              Render Sample 2
-            </button>
+          <div className="field-group">
+            <div className="field-group-title">Render Graph</div>
+            <div className="button-row">
+              <button
+                type="button"
+                className="secondary"
+                onClick={handleRender}
+                disabled
+              >
+                {isRendering ? "Rendering..." : "Render Graph"}
+              </button>
+            </div>
+            <div className="button-row">
+              <button type="button" onClick={handleRenderSample2}>
+                Render Sample
+              </button>
+              <button type="button" onClick={handleRenderSample}>
+                Render Sample 2
+              </button>
+            </div>
           </div>
           {graphError ? <div className="error">{graphError}</div> : null}
-          <label className="field-label prominent spaced" htmlFor="entry-point">
-            Attack Detected Node
-          </label>
-          <select
-            id="entry-point"
-            value={entryPoint}
-            onChange={(event) => {
-              setEntryPoint(event.target.value);
-              setSelectedPath(null);
-            }}
-          >
-            <option value="">Select node</option>
-            {listNodes
-              .map((node) => (
+          <div className="field-group">
+            <div className="field-group-title">Attack Inputs</div>
+            <label className="field-label prominent" htmlFor="entry-point">
+              Attacked Node
+            </label>
+            <select
+              id="entry-point"
+              value={entryPoint}
+              onChange={(event) => {
+                setEntryPoint(event.target.value);
+                setSelectedPath(null);
+              }}
+            >
+              <option value="">Select node</option>
+              {listNodes.map((node) => (
                 <option key={node.id} value={node.id}>
                   {node.label}
                 </option>
               ))}
-          </select>
-          <label className="field-label prominent" htmlFor="attack-data">
-            Attack Acquired Data
-          </label>
-          <select
-            id="attack-data"
-            value={attackData}
-            onChange={(event) => setAttackData(event.target.value)}
-          >
-            <option value="">Select asset</option>
-            {listNodes
-              .filter((node) => node.type === "asset")
-              .map((node) => (
-                <option key={node.id} value={node.id}>
-                  {node.label}
-                </option>
-              ))}
-          </select>
+            </select>
+            <label className="field-label prominent" htmlFor="attack-technique">
+              Attack Technique
+            </label>
+            <select
+              id="attack-technique"
+              value={attackTechnique}
+              onChange={(event) => setAttackTechnique(event.target.value)}
+            >
+              <option value="">Select technique</option>
+              {listNodes
+                .filter((node) => node.type === "tactic")
+                .map((node) => (
+                  <option key={node.id} value={node.id}>
+                    {node.label}
+                  </option>
+                ))}
+            </select>
+            <label className="field-label prominent" htmlFor="attack-data">
+              Attack Acquired Data
+            </label>
+            <select
+              id="attack-data"
+              value={attackData}
+              onChange={(event) => setAttackData(event.target.value)}
+            >
+              <option value="">Select asset</option>
+              {listNodes
+                .filter((node) => node.type === "asset")
+                .map((node) => (
+                  <option key={node.id} value={node.id}>
+                    {node.label}
+                  </option>
+                ))}
+            </select>
+          </div>
         </aside>
       </div>
     </div>
