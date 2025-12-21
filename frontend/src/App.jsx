@@ -394,7 +394,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Attack Input</h1>
+        <h1>Attack Path Visualizer</h1>
       </header>
       <div className="app-body">
         <section className="pane canvas-pane">
