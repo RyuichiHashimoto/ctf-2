@@ -1,0 +1,24 @@
+{
+  "graph":{
+    "node": [
+        { "id": "entry", "label": "Initial Access", "type": "entry" },
+        { "id": "phish", "label": "Phishing", "type": "tactic" },
+        { "id": "cred", "label": "Credential Dump", "type": "tactic" },
+        { "id": "vpn", "label": "VPN Pivot", "type": "pivot" },
+        { "id": "srv", "label": "App Server", "type": "asset" },
+        { "id": "db", "label": "Database", "type": "asset" },
+        { "id": "domain", "label": "Domain Admin", "type": "goal" },
+        { "id": "exfil", "label": "Data Exfiltration", "type": "goal" }
+    ],
+    "edge": [
+        { "id": "e1", "source": "entry", "target": "phish", "prob": 0.7},
+        { "id": "e2", "source": "phish", "target": "cred", "prob": 0.6},
+        { "id": "e3", "source": "cred", "target": "vpn", "prob": 0.5},
+        { "id": "e4", "source": "vpn", "target": "srv", "prob": 0.55},
+        { "id": "e5", "source": "srv", "target": "db", "prob": 0.4},
+        { "id": "e6", "source": "db", "target": "exfil", "prob": 0.45},
+        { "id": "e7", "source": "cred", "target": "domain", "prob": 0.3},
+        { "id": "e8", "source": "srv", "target": "domain", "prob": 0.2}
+    ]
+  }
+}

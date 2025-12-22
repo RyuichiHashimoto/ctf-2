@@ -3,16 +3,18 @@ from __future__ import annotations
 import json
 import sqlite3
 from pathlib import Path
+import os
 from typing import Any, Dict, List, Optional
 
 import networkx as nx
-from fastapi import FastAPI, Query, Request
+from fastapi import Body, FastAPI, Query, Request
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 DB_PATH = DATA_DIR / "attack_graph.db"
+MITRE_DB_PATH = Path(os.environ.get("MITRE_DB_PATH", DATA_DIR / "mitre_attack.db"))
 
 app = FastAPI(title="Attack Path Visualizer API")
 logger = logging.getLogger("uvicorn.error")
@@ -29,6 +31,12 @@ app.add_middleware(
 def get_conn() -> sqlite3.Connection:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def get_mitre_conn() -> sqlite3.Connection:
+    conn = sqlite3.connect(MITRE_DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -193,6 +201,22 @@ def score_path(graph: nx.DiGraph, path: List[str]) -> float:
     return score
 
 
+def build_graph_from_payload(payload: Dict[str, Any]) -> nx.DiGraph:
+    graph = nx.DiGraph()
+    for node in payload.get("nodes", []):
+        node_id = node.get("id")
+        if not node_id:
+            continue
+        graph.add_node(node_id, **node)
+    for edge in payload.get("edges", []):
+        source = edge.get("source")
+        target = edge.get("target")
+        if not source or not target:
+            continue
+        graph.add_edge(source, target, **edge)
+    return graph
+
+
 @app.on_event("startup")
 def on_startup() -> None:
     init_db()
@@ -264,3 +288,105 @@ def predict_paths(
             suggestions.append({"target": goal, "nodes": path, "score": score_path(graph, path)})
     suggestions.sort(key=lambda item: item["score"], reverse=True)
     return {"paths": suggestions[:5], "next_steps": next_steps}
+
+
+@app.post("/predict/paths")
+def predict_paths_from_payload(payload: Dict[str, Any] = Body(...)) -> Dict[str, Any]:
+    start = payload.get("start")
+    technique_filter = payload.get("technique")
+    feature_filter = payload.get("feature")
+    max_len = int(payload.get("max_len", 8))
+    graph_payload_data = payload.get("graph") or {}
+    if not start:
+        logger.info("POST /predict/paths payload=%s response=empty_start", payload)
+        return {"paths": []}
+    graph = build_graph_from_payload(graph_payload_data)
+    if start not in graph.nodes:
+        logger.info("POST /predict/paths payload=%s response=start_not_found", payload)
+        return {"paths": []}
+    targets = [
+        node_id
+        for node_id, data in graph.nodes(data=True)
+        if data.get("type") == "asset"
+    ]
+    paths = []
+    for target in targets:
+        for path in nx.all_simple_paths(graph, start, target, cutoff=max_len):
+            if technique_filter:
+                if len(path) < 2:
+                    continue
+                next_node = graph.nodes.get(path[1], {})
+                allowed = next_node.get("techniques") or []
+                if technique_filter not in allowed:
+                    continue
+            if feature_filter:
+                has_feature = False
+                for node_id in path:
+                    node_data = graph.nodes.get(node_id, {})
+                    features = node_data.get("features") or []
+                    if feature_filter in features:
+                        has_feature = True
+                        break
+                if not has_feature:
+                    continue
+            paths.append(
+                {
+                    "nodes": path,
+                    "risk": score_path(graph, path),
+                    "target": target,
+                }
+            )
+    paths.sort(key=lambda item: item["risk"], reverse=True)
+    response = {"paths": paths}
+    logger.info("POST /predict/paths payload=%s response_paths=%s", payload, len(paths))
+    return response
+
+
+@app.get("/mitre/tactics")
+def get_mitre_tactics() -> Dict[str, Any]:
+    if not MITRE_DB_PATH.exists():
+        return {"tactics": []}
+    conn = get_mitre_conn()
+    cur = conn.cursor()
+    rows = cur.execute(
+        "SELECT tactic_id, name, shortname FROM tactics ORDER BY order_index, name"
+    ).fetchall()
+    conn.close()
+    return {
+        "tactics": [
+            {"tactic_id": row["tactic_id"], "name": row["name"], "shortname": row["shortname"]}
+            for row in rows
+        ]
+    }
+
+
+@app.get("/mitre/techniques")
+def get_mitre_techniques(tactic: Optional[str] = None) -> Dict[str, Any]:
+    if not MITRE_DB_PATH.exists():
+        return {"techniques": []}
+    conn = get_mitre_conn()
+    cur = conn.cursor()
+    if tactic:
+        rows = cur.execute(
+            """
+            SELECT techniques.technique_id, techniques.name
+            FROM techniques
+            JOIN tactic_techniques ON tactic_techniques.technique_id = techniques.technique_id
+            JOIN tactics ON tactics.tactic_id = tactic_techniques.tactic_id
+            WHERE tactics.shortname = ?
+              AND techniques.technique_id NOT LIKE '%.%'
+            ORDER BY techniques.name
+            """,
+            (tactic,),
+        ).fetchall()
+    else:
+        rows = cur.execute(
+            "SELECT technique_id, name FROM techniques WHERE technique_id NOT LIKE '%.%' ORDER BY name"
+        ).fetchall()
+    conn.close()
+    return {
+        "techniques": [
+            {"technique_id": row["technique_id"], "name": row["name"]}
+            for row in rows
+        ]
+    }

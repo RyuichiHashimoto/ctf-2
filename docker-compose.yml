@@ -8,6 +8,7 @@ services:
       - "8000:8000"
     volumes:
       - backend-data:/app/data
+      - ./data/mitre_attack.db:/app/data/mitre_attack.db:ro
 
   frontend:
     build:

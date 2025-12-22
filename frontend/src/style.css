@@ -148,6 +148,12 @@ body {
   height: 100%;
 }
 
+.mx-container {
+  width: 100%;
+  min-height: 360px;
+  height: 100%;
+}
+
 .path-table {
   background: #ffffff;
   border-radius: 14px;
@@ -281,6 +287,26 @@ li {
   font-weight: 600;
 }
 
+.field-group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.field-group-header .secondary {
+  margin-left: auto;
+}
+
+.field-group-header .small {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.helper-text {
+  font-size: 13px;
+  color: var(--subtle);
+}
+
 textarea {
   width: 100%;
   border-radius: 12px;
@@ -302,6 +328,10 @@ select {
   font-size: 15px;
   background: #ffffff;
   color: var(--ink);
+}
+
+.file-input {
+  display: none;
 }
 
 button {

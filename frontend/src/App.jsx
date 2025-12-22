@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import cytoscape from "cytoscape";
 import dagre from "cytoscape-dagre";
+import { Graph as MaxGraph, HierarchicalLayout } from "@maxgraph/core";
 
 cytoscape.use(dagre);
 
@@ -24,11 +25,20 @@ export default function App() {
   const [isRendering, setIsRendering] = useState(false);
   const [entryPoint, setEntryPoint] = useState("");
   const [attackData, setAttackData] = useState("");
+  const [attackTactic, setAttackTactic] = useState("");
   const [attackTechnique, setAttackTechnique] = useState("");
+  const [mitreTactics, setMitreTactics] = useState([]);
+  const [mitreTechniques, setMitreTechniques] = useState([]);
   const [selectedPath, setSelectedPath] = useState(null);
+  const [predictedPaths, setPredictedPaths] = useState([]);
+  const [predictError, setPredictError] = useState("");
+  const [isPredicting, setIsPredicting] = useState(false);
 
   const cyRef = useRef(null);
   const cyContainerRef = useRef(null);
+  const mxGraphRef = useRef(null);
+  const mxContainerRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const handleLoad = () => {
     try {
@@ -40,11 +50,13 @@ export default function App() {
     }
   };
 
+  const apiBase = "http://localhost:8000";
+
   const handleRender = async () => {
     setIsRendering(true);
     setGraphError("");
     try {
-      const apiUrl = "http://localhost:8000/graph";
+      const apiUrl = `${apiBase}/graph`;
       console.log("[Render] Calling Graph API:", apiUrl);
       const response = await fetch(apiUrl);
       console.log("[Render] Response status:", response.status, response.statusText);
@@ -61,6 +73,58 @@ export default function App() {
     } finally {
       setIsRendering(false);
     }
+  };
+
+  const handleLoadGraphClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleGraphFile = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const payload = JSON.parse(String(reader.result || "{}"));
+        let normalized = null;
+        if (payload.nodes && payload.edges) {
+          normalized = payload;
+        } else if (payload.graph) {
+          const nodes = (payload.graph.node || []).map((node) => ({
+            id: node.id,
+            label: node.label || node["labe;"] || node.id,
+            type: node.type || "unknown",
+            techniques: node.techniques || [],
+            features: node.features || []
+          }));
+          const edges = []
+            .concat(payload.graph.edge || [])
+            .concat(payload.graph.contains || [])
+            .map((edge, index) => ({
+              id: edge.id || `edge-${index}`,
+              source: edge.source,
+              target: edge.target,
+              prob: edge.prob ?? 0.1,
+              technique: edge.technique || ""
+            }));
+          normalized = { nodes, edges };
+        }
+        if (!normalized) {
+          throw new Error("Invalid graph format");
+        }
+        setGraphData(normalized);
+        setActiveTab("render");
+        setGraphError("");
+      } catch (err) {
+        setGraphError("JSONファイルの読み込みに失敗しました。形式を確認してください。");
+      }
+    };
+    reader.readAsText(file);
   };
 
   const handleRenderSample = () => {
@@ -87,20 +151,25 @@ export default function App() {
       ]
     };
     setGraphData(sampleGraph);
-    setActiveTab("render");
+    setActiveTab(activeTab === "maxgraph" ? "maxgraph" : "render");
     setGraphError("");
+  };
+
+  const handleRenderSampleMaxGraph = () => {
+    handleRenderSample();
+    setActiveTab("maxgraph");
   };
 
   const handleRenderSample2 = () => {
     const sampleGraph = {
       nodes: [
-        { id: "en1", label: "Web Server 1", type: "entry" },
-        { id: "en2", label: "Web Server 2", type: "entry" },
-        { id: "pi-1", label: "Gateway 1", type: "pivot" },
-        { id: "pi-2", label: "Gateway 2", type: "pivot" },
-        { id: "as-1", label: "Payroll DB", type: "asset" },
-        { id: "as-2", label: "File Server", type: "asset" },
-        { id: "as-3", label: "CI Server", type: "asset" }
+        { id: "en1", label: "Web Server 1", type: "entry","techniques": ["T1078", "T1041"],"features": []},
+        { id: "en2", label: "Web Server 2", type: "entry","techniques": ["T1078", "T1041"],"features": []},
+        { id: "pi-1", label: "Gateway 1", type: "pivot","techniques": ["T1078", "T1659"],"features": []},
+        { id: "pi-2", label: "Gateway 2", type: "pivot","techniques": ["T1078", "T1189"],"features": []},
+        { id: "as-1", label: "Payroll DB", type: "asset","techniques": ["T1078", "T1041"],"features": []},
+        { id: "as-2", label: "File Server", type: "asset","techniques": ["T1078", "T1041"],"features": ["Asset Locations (File Server)"]},
+        { id: "as-3", label: "CI Server", type: "asset","techniques": ["T1078", "T1041"],"features": []}
       ],
       edges: [
         { id: "s2-e1", source: "en1", target: "pi-1", prob: 0.6, technique: "T1566" },
@@ -112,7 +181,7 @@ export default function App() {
       ]
     };
     setGraphData(sampleGraph);
-    setActiveTab("render");
+    setActiveTab(activeTab === "maxgraph" ? "maxgraph" : "render");
     setGraphError("");
   };
 
@@ -256,50 +325,21 @@ export default function App() {
       }
     };
 
-    if (selectedPath && selectedPath.length > 0) {
-      applyPathHighlight(selectedPath);
+    const pathsToHighlight = selectedPath?.length
+      ? [selectedPath]
+      : predictedPaths.map((item) => item.nodes);
+    if (pathsToHighlight.length === 0) {
       return;
     }
-    if (!entryPoint) {
-      return;
-    }
-
-    const edges = graphData.edges ?? [];
-    const adjacency = new Map();
-    edges.forEach((edge) => {
-      if (!adjacency.has(edge.source)) {
-        adjacency.set(edge.source, []);
-      }
-      adjacency.get(edge.source).push(edge.target);
+    const uniqueNodes = new Set();
+    pathsToHighlight.forEach((path) => {
+      applyPathHighlight(path);
+      path.forEach((nodeId) => uniqueNodes.add(nodeId));
     });
-
-    const queue = [entryPoint];
-    const visited = new Set([entryPoint]);
-    const parent = new Map();
-    while (queue.length > 0) {
-      const current = queue.shift();
-      const nextNodes = adjacency.get(current) || [];
-      for (const next of nextNodes) {
-        if (!visited.has(next)) {
-          visited.add(next);
-          parent.set(next, current);
-          queue.push(next);
-        }
-      }
+    if (entryPoint) {
+      cy.$id(entryPoint).addClass("highlighted-start");
     }
-
-    visited.forEach((nodeId) => {
-      cy.$id(nodeId).addClass("highlighted");
-      const parentId = parent.get(nodeId);
-      if (parentId) {
-        const edge = cy.edges(
-          `[source = "${parentId}"][target = "${nodeId}"]`
-        );
-        edge.addClass("highlighted");
-      }
-    });
-    cy.$id(entryPoint).addClass("highlighted-start");
-  }, [entryPoint, graphData, selectedPath]);
+  }, [entryPoint, graphData, selectedPath, predictedPaths, attackTechnique]);
 
   useEffect(() => {
     if (activeTab !== "render" || !cyRef.current) {
@@ -314,82 +354,173 @@ export default function App() {
     }).run();
   }, [activeTab]);
 
-  const pathRows = useMemo(() => {
+  useEffect(() => {
+    if (activeTab !== "maxgraph" || !graphData || !mxContainerRef.current) {
+      return;
+    }
+    if (mxGraphRef.current) {
+      mxGraphRef.current.destroy();
+      mxGraphRef.current = null;
+    }
+    const container = mxContainerRef.current;
+    container.innerHTML = "";
+
+    const graph = new MaxGraph(container);
+    mxGraphRef.current = graph;
+    graph.setPanning(true);
+
+    const nodeColors = {
+      entry: "#2563eb",
+      tactic: "#7c3aed",
+      pivot: "#0f766e",
+      asset: "#f59e0b",
+      goal: "#dc2626",
+      unknown: "#64748b"
+    };
+    const parent = graph.getDefaultParent();
+    const vertexMap = new Map();
+
+    const model =
+      (graph.getDataModel && graph.getDataModel()) ||
+      (graph.getModel && graph.getModel()) ||
+      graph.model;
+    if (model?.beginUpdate) {
+      model.beginUpdate();
+    }
+    try {
+      (graphData.nodes ?? []).forEach((node) => {
+        const fill = nodeColors[node.type] || nodeColors.unknown;
+        const style = `rounded=1;fillColor=${fill};strokeColor=#ffffff;fontColor=#ffffff;`;
+        const vertex = graph.insertVertex(
+          parent,
+          node.id,
+          node.label,
+          0,
+          0,
+          140,
+          50,
+          style
+        );
+        vertexMap.set(node.id, vertex);
+      });
+      (graphData.edges ?? []).forEach((edge) => {
+        const source = vertexMap.get(edge.source);
+        const target = vertexMap.get(edge.target);
+        if (!source || !target) {
+          return;
+        }
+        graph.insertEdge(parent, edge.id, "", source, target);
+      });
+    } finally {
+      if (model?.endUpdate) {
+        model.endUpdate();
+      }
+    }
+
+    const layout = new HierarchicalLayout(graph, "east");
+    layout.execute(parent);
+  }, [activeTab, graphData]);
+
+  useEffect(() => {
     if (!graphData || !entryPoint) {
+      setPredictedPaths([]);
+      setPredictError("");
+      return;
+    }
+    const controller = new AbortController();
+    const runPredict = async () => {
+      setIsPredicting(true);
+      setPredictError("");
+      try {
+        const response = await fetch(`${apiBase}/predict/paths`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            start: entryPoint,
+            max_len: 8,
+            technique: attackTechnique || null,
+            feature: attackData || null,
+            graph: graphData
+          }),
+          signal: controller.signal
+        });
+        if (!response.ok) {
+          throw new Error("Predict request failed");
+        }
+        const data = await response.json();
+        setPredictedPaths(data.paths || []);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          setPredictError("予測経路の取得に失敗しました。");
+          setPredictedPaths([]);
+        }
+      } finally {
+        setIsPredicting(false);
+      }
+    };
+    runPredict();
+    return () => controller.abort();
+  }, [graphData, entryPoint, attackTechnique, attackData, apiBase]);
+
+  const pathRows = useMemo(() => {
+    if (!graphData || predictedPaths.length === 0) {
       return [];
     }
     const nodeLabelById = new Map(
       (graphData.nodes ?? []).map((node) => [node.id, node.label || node.id])
     );
-    const edges = graphData.edges ?? [];
-    const adjacency = new Map();
-    const edgeMeta = new Map();
-    edges.forEach((edge) => {
-      if (!adjacency.has(edge.source)) {
-        adjacency.set(edge.source, []);
-      }
-      adjacency.get(edge.source).push(edge.target);
-      edgeMeta.set(`${edge.source}->${edge.target}`, edge);
-    });
+    return predictedPaths.map((pathItem, index) => ({
+      id: index + 1,
+      start: nodeLabelById.get(pathItem.nodes[0]) || pathItem.nodes[0],
+      end:
+        nodeLabelById.get(pathItem.nodes[pathItem.nodes.length - 1]) ||
+        pathItem.nodes[pathItem.nodes.length - 1],
+      risk: Number(pathItem.risk ?? 0).toFixed(3),
+      path: pathItem.nodes
+    }));
+  }, [graphData, predictedPaths]);
 
-    const maxDepth = 8;
-    const paths = [];
-    const dfs = (current, path, target) => {
-      if (path.length > maxDepth) {
-        return;
-      }
-      if (current === target) {
-        paths.push([...path]);
-        return;
-      }
-      const nextNodes = adjacency.get(current) || [];
-      for (const next of nextNodes) {
-        if (path.includes(next)) {
-          continue;
-        }
-        path.push(next);
-        dfs(next, path, target);
-        path.pop();
+  useEffect(() => {
+    const loadTactics = async () => {
+      try {
+        const response = await fetch(`${apiBase}/mitre/tactics`);
+        const data = await response.json();
+        setMitreTactics(data.tactics || []);
+      } catch (err) {
+        setMitreTactics([]);
       }
     };
+    loadTactics();
+  }, [apiBase]);
 
-    const reachable = new Set([entryPoint]);
-    const queue = [entryPoint];
-    while (queue.length > 0) {
-      const current = queue.shift();
-      const nextNodes = adjacency.get(current) || [];
-      for (const next of nextNodes) {
-        if (!reachable.has(next)) {
-          reachable.add(next);
-          queue.push(next);
-        }
-      }
+  useEffect(() => {
+    if (!attackTactic) {
+      setMitreTechniques([]);
+      return;
     }
-    const assets = (graphData.nodes ?? [])
-      .filter((node) => node.type === "asset" && reachable.has(node.id))
-      .map((node) => node.id);
-    assets.forEach((assetId) => {
-      dfs(entryPoint, [entryPoint], assetId);
-    });
-
-    return paths.map((path, index) => {
-      let risk = 1;
-      for (let i = 0; i < path.length - 1; i += 1) {
-        const edge = edgeMeta.get(`${path[i]}->${path[i + 1]}`);
-        risk *= Number(edge?.prob ?? 0.1);
+    const loadTechniques = async () => {
+      try {
+        const response = await fetch(
+          `${apiBase}/mitre/techniques?tactic=${encodeURIComponent(attackTactic)}`
+        );
+        const data = await response.json();
+        setMitreTechniques(data.techniques || []);
+      } catch (err) {
+        setMitreTechniques([]);
       }
-      return {
-        id: index + 1,
-        start: nodeLabelById.get(path[0]) || path[0],
-        end: nodeLabelById.get(path[path.length - 1]) || path[path.length - 1],
-        risk: risk.toFixed(3),
-        path
-      };
-    });
-  }, [graphData, entryPoint]);
+    };
+    loadTechniques();
+  }, [apiBase, attackTactic]);
 
   const listNodes = graphData?.nodes ?? [];
   const listEdges = graphData?.edges ?? [];
+  const selectedEntryLabel = useMemo(() => {
+    if (!entryPoint) {
+      return "";
+    }
+    const found = listNodes.find((node) => node.id === entryPoint);
+    return found?.label || "";
+  }, [entryPoint, listNodes]);
 
   return (
     <div className="app">
@@ -406,6 +537,14 @@ export default function App() {
             >
               <span className="tab-icon" aria-hidden="true" />
               Attack Path
+            </button>
+            <button
+              type="button"
+              className={activeTab === "maxgraph" ? "tab active" : "tab"}
+              onClick={() => setActiveTab("maxgraph")}
+            >
+              <span className="tab-icon" aria-hidden="true" />
+              MaxGraph
             </button>
           </div>
           {activeTab === "render" ? (
@@ -456,6 +595,54 @@ export default function App() {
                 </div>
               )}
             </div>
+          ) : activeTab === "maxgraph" ? (
+            <div className="canvas-content">
+              {graphData ? (
+                <>
+                  <div className="cy-shell">
+                    <div className="cy-title">Network Configuration Graph</div>
+                    <div className="mx-container" ref={mxContainerRef} />
+                  </div>
+                  <div className="path-table">
+                    <div className="path-title">Attack Paths</div>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>No</th>
+                          <th>Attacked Node</th>
+                          <th>Asset</th>
+                          <th>Risk</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pathRows.length > 0 ? (
+                          pathRows.map((row) => (
+                            <tr
+                              key={row.id}
+                              onMouseEnter={() => setSelectedPath(row.path)}
+                              onMouseLeave={() => setSelectedPath(null)}
+                            >
+                              <td>{row.id}</td>
+                              <td>{row.start}</td>
+                              <td>{row.end}</td>
+                              <td>{row.risk}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={4}>Select Attack Detected Node.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              ) : (
+                <div className="placeholder">
+                  Renderボタンを押してGraph APIから取得してください。
+                </div>
+              )}
+            </div>
           ) : null}
         </section>
         <aside className="pane settings-pane">
@@ -463,29 +650,53 @@ export default function App() {
           
           {error ? <div className="error">{error}</div> : null}
           <div className="field-group">
-            <div className="field-group-title">Render Graph</div>
+            <div className="field-group-title">Load Graph</div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json"
+              onChange={handleGraphFile}
+              className="file-input"
+            />
             <div className="button-row">
               <button
                 type="button"
                 className="secondary"
-                onClick={handleRender}
-                disabled
+                onClick={handleLoadGraphClick}
               >
-                {isRendering ? "Rendering..." : "Render Graph"}
+                {isRendering ? "Loading..." : "Load configuration file"}
               </button>
             </div>
             <div className="button-row">
               <button type="button" onClick={handleRenderSample2}>
-                Render Sample
+                load sample configuration 1
               </button>
               <button type="button" onClick={handleRenderSample}>
-                Render Sample 2
+                load sample configuration 2
+              </button>
+              <button type="button" onClick={handleRenderSampleMaxGraph}>
+                load sample configuration (maxGraph)
               </button>
             </div>
           </div>
           {graphError ? <div className="error">{graphError}</div> : null}
+          {predictError ? <div className="error">{predictError}</div> : null}
           <div className="field-group">
-            <div className="field-group-title">Attack Inputs</div>
+            <div className="field-group-header">
+              <div className="field-group-title">Attack Inputs</div>
+              <button
+                type="button"
+                className="secondary small"
+                onClick={() => {
+                  setEntryPoint("");
+                  setAttackTactic("");
+                  setAttackTechnique("");
+                  setAttackData("");
+                }}
+              >
+                Clear
+              </button>
+            </div>
             <label className="field-label prominent" htmlFor="entry-point">
               Attacked Node
             </label>
@@ -495,12 +706,31 @@ export default function App() {
               onChange={(event) => {
                 setEntryPoint(event.target.value);
                 setSelectedPath(null);
+                setPredictedPaths([]);
               }}
             >
               <option value="">Select node</option>
               {listNodes.map((node) => (
                 <option key={node.id} value={node.id}>
                   {node.label}
+                </option>
+              ))}
+            </select>
+            <label className="field-label prominent" htmlFor="attack-tactic">
+              Attack Tactic
+            </label>
+            <select
+              id="attack-tactic"
+              value={attackTactic}
+              onChange={(event) => {
+                setAttackTactic(event.target.value);
+                setAttackTechnique("");
+              }}
+            >
+              <option value="">Select tactic</option>
+              {mitreTactics.map((tactic) => (
+                <option key={tactic.tactic_id} value={tactic.shortname}>
+                  {tactic.name}
                 </option>
               ))}
             </select>
@@ -511,15 +741,14 @@ export default function App() {
               id="attack-technique"
               value={attackTechnique}
               onChange={(event) => setAttackTechnique(event.target.value)}
+              disabled={!attackTactic}
             >
               <option value="">Select technique</option>
-              {listNodes
-                .filter((node) => node.type === "tactic")
-                .map((node) => (
-                  <option key={node.id} value={node.id}>
-                    {node.label}
-                  </option>
-                ))}
+              {mitreTechniques.map((technique) => (
+                <option key={technique.technique_id} value={technique.technique_id}>
+                  {technique.name} ({technique.technique_id})
+                </option>
+              ))}
             </select>
             <label className="field-label prominent" htmlFor="attack-data">
               Attack Acquired Data
@@ -529,14 +758,10 @@ export default function App() {
               value={attackData}
               onChange={(event) => setAttackData(event.target.value)}
             >
-              <option value="">Select asset</option>
-              {listNodes
-                .filter((node) => node.type === "asset")
-                .map((node) => (
-                  <option key={node.id} value={node.id}>
-                    {node.label}
-                  </option>
-                ))}
+              <option value="">Select Data</option>
+              <option value="Asset Locations (File Server)">
+                Asset Locations (File Server)
+              </option>
             </select>
           </div>
         </aside>

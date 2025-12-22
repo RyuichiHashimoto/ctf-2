@@ -1,0 +1,15 @@
+{
+    "graph":{
+        "node":[
+            {"id":"asdf1","labe;":"asdf"},
+            {"id":"asdf2","labe;":"asdf"},
+            {"id":"asdf3","labe;":"asdf"}
+        ],
+        "edge": [
+            {"source":"asdf1","target":"asdf2"}
+        ],
+        "contains": [
+            {"source":"asdf3","target":"asdf2"}
+        ]
+    }
+}
