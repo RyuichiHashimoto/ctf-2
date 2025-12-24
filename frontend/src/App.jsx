@@ -33,6 +33,9 @@ export default function App() {
   const [predictedPaths, setPredictedPaths] = useState([]);
   const [predictError, setPredictError] = useState("");
   const [isPredicting, setIsPredicting] = useState(false);
+  const [detectionAlert, setDetectionAlert] = useState(null);
+  const [wsConnected, setWsConnected] = useState(false);
+  const [isDebugMode, setIsDebugMode] = useState(true);
 
   const cyRef = useRef(null);
   const cyContainerRef = useRef(null);
@@ -50,7 +53,9 @@ export default function App() {
     }
   };
 
-  const apiBase = "http://localhost:8000";
+  const apiBase = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+  const wsBase =
+    import.meta.env.VITE_WS_BASE || "ws://localhost:8000";
 
   const handleRender = async () => {
     setIsRendering(true);
@@ -185,6 +190,32 @@ export default function App() {
     setGraphError("");
   };
 
+  const handleDetectionCall = async () => {
+    try {
+      const response = await fetch(`${apiBase}/detection`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          device_id: entryPoint || "unknown-device",
+          event: "detection",
+          detail: attackTechnique || attackData || "manual-trigger"
+        })
+      });
+      if (!response.ok) {
+        throw new Error("Detection API failed");
+      }
+      const data = await response.json();
+      setDetectionAlert(data);
+    } catch (err) {
+      setDetectionAlert({
+        status: "error",
+        device_id: entryPoint || "unknown-device",
+        event: "detection",
+        detail: "API call failed"
+      });
+    }
+  };
+
   useEffect(() => {
     if (!graphData || !cyContainerRef.current) {
       return;
@@ -270,9 +301,23 @@ export default function App() {
             }
           },
           {
+            selector: "node.highlighted-start::after",
+            style: {
+              content: "\"ATTACKED\"",
+              "text-valign": "top",
+              "text-halign": "center",
+              "text-margin-y": -12,
+              "font-size": "11px",
+              color: "#b91c1c",
+              "text-background-color": "#fee2e2",
+              "text-background-opacity": 0.95,
+              "text-background-padding": 2
+            }
+          },
+          {
             selector: "edge",
             style: {
-              width: 2,
+              width: "mapData(riskNorm, 0, 1, 1, 6)",
               "line-color": "#94a3b8",
               "target-arrow-shape": "triangle",
               "target-arrow-scale": 1.4,
@@ -283,7 +328,7 @@ export default function App() {
           {
             selector: "edge.highlighted",
             style: {
-              width: 3,
+              width: "mapData(riskNorm, 0, 1, 2, 8)",
               "line-color": "#ef4444",
               "target-arrow-scale": 1.6,
               "target-arrow-color": "#ef4444"
@@ -325,9 +370,23 @@ export default function App() {
       }
     };
 
-    const pathsToHighlight = selectedPath?.length
-      ? [selectedPath]
-      : predictedPaths.map((item) => item.nodes);
+    const riskThreshold = 0.05;
+    const pathsAboveThreshold = predictedPaths
+      .filter((item) => Number(item.risk ?? 0) >= riskThreshold)
+      .map((item) => item.nodes);
+    const isSamePath = (a, b) =>
+      a.length === b.length && a.every((value, index) => value === b[index]);
+    let pathsToHighlight = pathsAboveThreshold;
+    if (selectedPath?.length) {
+      const match = predictedPaths.find((item) =>
+        isSamePath(item.nodes || [], selectedPath)
+      );
+      if (match && Number(match.risk ?? 0) >= riskThreshold) {
+        pathsToHighlight = [selectedPath];
+      } else {
+        return;
+      }
+    }
     if (pathsToHighlight.length === 0) {
       return;
     }
@@ -336,10 +395,40 @@ export default function App() {
       applyPathHighlight(path);
       path.forEach((nodeId) => uniqueNodes.add(nodeId));
     });
+    cy.nodes().forEach((node) => {
+      node.data("alertLabel", node.data("label"));
+    });
     if (entryPoint) {
-      cy.$id(entryPoint).addClass("highlighted-start");
+      const entryNode = cy.$id(entryPoint);
+      entryNode.addClass("highlighted-start");
     }
   }, [entryPoint, graphData, selectedPath, predictedPaths, attackTechnique]);
+
+  useEffect(() => {
+    if (!cyRef.current) {
+      return;
+    }
+    const riskThreshold = 0.05;
+    const edgeRiskSum = new Map();
+    predictedPaths.forEach((pathItem) => {
+      const risk = Number(pathItem.risk ?? 0);
+      if (risk < riskThreshold) {
+        return;
+      }
+      const nodes = pathItem.nodes || [];
+      for (let i = 0; i < nodes.length - 1; i += 1) {
+        const key = `${nodes[i]}->${nodes[i + 1]}`;
+        edgeRiskSum.set(key, (edgeRiskSum.get(key) || 0) + risk);
+      }
+    });
+    const maxRisk = Math.max(0, ...edgeRiskSum.values());
+    cyRef.current.edges().forEach((edge) => {
+      const key = `${edge.data("source")}->${edge.data("target")}`;
+      const sum = edgeRiskSum.get(key) || 0;
+      const norm = maxRisk > 0 ? sum / maxRisk : 0;
+      edge.data("riskNorm", norm);
+    });
+  }, [predictedPaths]);
 
   useEffect(() => {
     if (activeTab !== "render" || !cyRef.current) {
@@ -469,7 +558,11 @@ export default function App() {
     const nodeLabelById = new Map(
       (graphData.nodes ?? []).map((node) => [node.id, node.label || node.id])
     );
-    return predictedPaths.map((pathItem, index) => ({
+    const riskThreshold = 0.05;
+    const filtered = isDebugMode
+      ? predictedPaths
+      : predictedPaths.filter((item) => Number(item.risk ?? 0) >= riskThreshold);
+    return filtered.map((pathItem, index) => ({
       id: index + 1,
       start: nodeLabelById.get(pathItem.nodes[0]) || pathItem.nodes[0],
       end:
@@ -478,7 +571,7 @@ export default function App() {
       risk: Number(pathItem.risk ?? 0).toFixed(3),
       path: pathItem.nodes
     }));
-  }, [graphData, predictedPaths]);
+  }, [graphData, predictedPaths, isDebugMode]);
 
   useEffect(() => {
     const loadTactics = async () => {
@@ -492,6 +585,29 @@ export default function App() {
     };
     loadTactics();
   }, [apiBase]);
+
+  useEffect(() => {
+    const ws = new WebSocket(`${wsBase}/ws/detection`);
+    ws.onopen = () => setWsConnected(true);
+    ws.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        setDetectionAlert(payload);
+      } catch (err) {
+        setDetectionAlert({
+          status: "error",
+          device_id: "unknown",
+          event: "detection",
+          detail: "Invalid websocket payload"
+        });
+      }
+    };
+    ws.onclose = () => setWsConnected(false);
+    ws.onerror = () => setWsConnected(false);
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   useEffect(() => {
     if (!attackTactic) {
@@ -514,6 +630,13 @@ export default function App() {
 
   const listNodes = graphData?.nodes ?? [];
   const listEdges = graphData?.edges ?? [];
+  const nodeLabelById = useMemo(() => {
+    const map = new Map();
+    listNodes.forEach((node) => {
+      map.set(node.id, node.label || node.id);
+    });
+    return map;
+  }, [listNodes]);
   const selectedEntryLabel = useMemo(() => {
     if (!entryPoint) {
       return "";
@@ -526,7 +649,50 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <h1>Attack Path Visualizer</h1>
+        <div className="header-controls">
+          {isDebugMode ? (
+            <div className="ws-status">
+              <span className={`ws-dot ${wsConnected ? "ok" : "bad"}`} />
+              {wsConnected ? "connected" : "disconnected"}
+            </div>
+          ) : null}
+          <button
+            type="button"
+            className="mode-button"
+            onClick={() => setIsDebugMode((value) => !value)}
+          >
+            {isDebugMode ? "Debug Mode" : "Production Mode"}
+          </button>
+        </div>
       </header>
+      {detectionAlert ? (
+        <div className="alert-overlay" role="alertdialog" aria-modal="true">
+          <div className="alert-panel">
+            <div className="alert-title">Detection Alert</div>
+            <div className="alert-body">
+              <div>
+                Device:{" "}
+                {nodeLabelById.get(detectionAlert.device_id) ||
+                  detectionAlert.device_id ||
+                  "unknown"}
+              </div>
+              <div>Event: {detectionAlert.event || "detection"}</div>
+              <div>Detail: {detectionAlert.detail || "-"}</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (detectionAlert.device_id) {
+                  setEntryPoint(detectionAlert.device_id);
+                }
+                setDetectionAlert(null);
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      ) : null}
       <div className="app-body">
         <section className="pane canvas-pane">
           <div className="tabs">
@@ -564,6 +730,7 @@ export default function App() {
                           <th>Attacked Node</th>
                           <th>Asset</th>
                           <th>Risk</th>
+                          {isDebugMode ? <th>Debug</th> : null}
                         </tr>
                       </thead>
                       <tbody>
@@ -578,11 +745,18 @@ export default function App() {
                               <td>{row.start}</td>
                               <td>{row.end}</td>
                               <td>{row.risk}</td>
+                              {isDebugMode ? (
+                                <td>
+                                  {Number(row.risk) >= 0.05 ? "display" : "hide"}
+                                </td>
+                              ) : null}
                             </tr>
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={4}>Select Attack Detected Node.</td>
+                            <td colSpan={isDebugMode ? 5 : 4}>
+                              Select Attack Detected Node.
+                            </td>
                           </tr>
                         )}
                       </tbody>
@@ -612,6 +786,7 @@ export default function App() {
                           <th>Attacked Node</th>
                           <th>Asset</th>
                           <th>Risk</th>
+                          {isDebugMode ? <th>Debug</th> : null}
                         </tr>
                       </thead>
                       <tbody>
@@ -626,11 +801,18 @@ export default function App() {
                               <td>{row.start}</td>
                               <td>{row.end}</td>
                               <td>{row.risk}</td>
+                              {isDebugMode ? (
+                                <td>
+                                  {Number(row.risk) >= 0.05 ? "display" : "hide"}
+                                </td>
+                              ) : null}
                             </tr>
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={4}>Select Attack Detected Node.</td>
+                            <td colSpan={isDebugMode ? 5 : 4}>
+                              Select Attack Detected Node.
+                            </td>
                           </tr>
                         )}
                       </tbody>

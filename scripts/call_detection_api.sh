@@ -1,0 +1,1 @@
+curl -X POST http://localhost:8000/detection -H "Content-Type: application/json" -d '{"device_id": "en1", "event": "detection", "detail": "T1078"}'

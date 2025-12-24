@@ -34,6 +34,10 @@ body {
   border-bottom: 1px solid #0b0b0d;
   box-shadow: 0 24px 40px -30px rgba(0, 0, 0, 0.6);
   padding: 24px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .app-header h1 {
@@ -42,6 +46,57 @@ body {
   color: #ffffff;
   letter-spacing: 0.6px;
 }
+
+.header-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ws-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.ws-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+  background: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+}
+
+.ws-dot.ok {
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+}
+
+.mode-toggle {
+  display: inline-flex;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 4px;
+  gap: 4px;
+}
+
+.mode-button {
+  background: #ffffff;
+  border: none;
+  color: #0f172a;
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
 
 .app-body {
   display: grid;
@@ -358,6 +413,43 @@ button.secondary {
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.alert-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(127, 29, 29, 0.95);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.alert-panel {
+  background: #ffffff;
+  color: #7f1d1d;
+  border-radius: 16px;
+  padding: 24px;
+  width: min(520px, 90vw);
+  box-shadow: 0 30px 60px -40px rgba(0, 0, 0, 0.6);
+  border: 2px solid #ef4444;
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+}
+
+.alert-title {
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.alert-body {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  color: #7f1d1d;
 }
 
 .loaded-title {

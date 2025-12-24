@@ -7,7 +7,7 @@ import os
 from typing import Any, Dict, List, Optional
 
 import networkx as nx
-from fastapi import Body, FastAPI, Query, Request
+from fastapi import Body, FastAPI, Query, Request, WebSocket, WebSocketDisconnect
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -19,9 +19,10 @@ MITRE_DB_PATH = Path(os.environ.get("MITRE_DB_PATH", DATA_DIR / "mitre_attack.db
 app = FastAPI(title="Attack Path Visualizer API")
 logger = logging.getLogger("uvicorn.error")
 
+frontend_origin = os.environ.get("FRONTEND_ORIGIN", "*")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[frontend_origin] if frontend_origin != "*" else ["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -312,13 +313,15 @@ def predict_paths_from_payload(payload: Dict[str, Any] = Body(...)) -> Dict[str,
     paths = []
     for target in targets:
         for path in nx.all_simple_paths(graph, start, target, cutoff=max_len):
+            risk_override = None
             if technique_filter:
                 if len(path) < 2:
-                    continue
-                next_node = graph.nodes.get(path[1], {})
-                allowed = next_node.get("techniques") or []
-                if technique_filter not in allowed:
-                    continue
+                    risk_override = 0.0
+                else:
+                    next_node = graph.nodes.get(path[1], {})
+                    allowed = next_node.get("techniques") or []
+                    if technique_filter not in allowed:
+                        risk_override = 0.0
             if feature_filter:
                 has_feature = False
                 for node_id in path:
@@ -332,7 +335,7 @@ def predict_paths_from_payload(payload: Dict[str, Any] = Body(...)) -> Dict[str,
             paths.append(
                 {
                     "nodes": path,
-                    "risk": score_path(graph, path),
+                    "risk": risk_override if risk_override is not None else score_path(graph, path),
                     "target": target,
                 }
             )
@@ -340,6 +343,39 @@ def predict_paths_from_payload(payload: Dict[str, Any] = Body(...)) -> Dict[str,
     response = {"paths": paths}
     logger.info("POST /predict/paths payload=%s response_paths=%s", payload, len(paths))
     return response
+
+
+@app.post("/detection")
+async def receive_detection(payload: Dict[str, Any] = Body(...)) -> Dict[str, Any]:
+    logger.info("POST /detection payload=%s", payload)
+    message = {
+        "device_id": payload.get("device_id"),
+        "event": payload.get("event"),
+        "detail": payload.get("detail"),
+    }
+    for ws in list(active_detection_sockets):
+        try:
+            await ws.send_json(message)
+        except Exception:
+            active_detection_sockets.discard(ws)
+    return {
+        "status": "ok",
+        **message,
+    }
+
+
+active_detection_sockets: set[WebSocket] = set()
+
+
+@app.websocket("/ws/detection")
+async def detection_socket(ws: WebSocket) -> None:
+    await ws.accept()
+    active_detection_sockets.add(ws)
+    try:
+        while True:
+            await ws.receive_text()
+    except WebSocketDisconnect:
+        active_detection_sockets.discard(ws)
 
 
 @app.get("/mitre/tactics")

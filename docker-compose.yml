@@ -9,6 +9,8 @@ services:
     volumes:
       - backend-data:/app/data
       - ./data/mitre_attack.db:/app/data/mitre_attack.db:ro
+    environment:
+      - FRONTEND_ORIGIN=http://localhost:5173
 
   frontend:
     build:
@@ -17,6 +19,9 @@ services:
       - "5173:5173"
     depends_on:
       - backend
+    environment:
+      - VITE_API_BASE=http://localhost:8000
+      - VITE_WS_BASE=ws://localhost:8000
 
 volumes:
   backend-data:
