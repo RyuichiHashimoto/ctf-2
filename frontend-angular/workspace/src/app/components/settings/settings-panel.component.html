@@ -1,0 +1,10 @@
+<div class="pane settings-pane">
+  <div class="pane-title">Settings</div>
+
+  <app-load-graph-panel></app-load-graph-panel>
+
+  <div class="error" *ngIf="service.graphError">{{ service.graphError }}</div>
+  <div class="error" *ngIf="service.predictError">{{ service.predictError }}</div>
+
+  <app-attack-inputs-panel></app-attack-inputs-panel>
+</div>

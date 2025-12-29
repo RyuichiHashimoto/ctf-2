@@ -1,5 +1,4 @@
 version: "3.9"
-
 services:
   backend:
     build:
@@ -7,21 +6,51 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - backend-data:/app/data
+      - ./backend/src:/app/src
+      - ./data/uploads:/app/data/uploads
       - ./data/mitre_attack.db:/app/data/mitre_attack.db:ro
     environment:
-      - FRONTEND_ORIGIN=http://localhost:5173
+      - FRONTEND_ORIGIN=http://localhost:5173,http://localhost:4200
+      - PYTHONPATH=/app/src
 
-  frontend:
+  # frontend-react:
+  #   build:
+  #     context: ./frontend-react
+  #   ports:
+  #     - "5173:5173"
+  #   depends_on:
+  #     - backend
+  #   environment:
+  #     - VITE_API_BASE=http://localhost:8000
+  #     - VITE_WS_BASE=ws://localhost:8000
+
+  frontend-angular:
     build:
-      context: ./frontend
+      context: ./frontend-angular
     ports:
-      - "5173:5173"
+      - "4200:4200"
     depends_on:
       - backend
+    volumes:
+      - ./frontend-angular:/workspace
     environment:
       - VITE_API_BASE=http://localhost:8000
       - VITE_WS_BASE=ws://localhost:8000
 
+  mysql:
+    image: mysql:8.4
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=mitre_attack
+      - MYSQL_USER=mitre_user
+      - MYSQL_PASSWORD=mitre_pass
+      - MYSQL_ROOT_PASSWORD=rootpass
+    volumes:
+      - mysql-data:/var/lib/mysql
+    
+
 volumes:
   backend-data:
+  frontend-angular-node-modules:
+  mysql-data:

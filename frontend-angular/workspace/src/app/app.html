@@ -1,0 +1,28 @@
+<div class="app">
+  <header class="app-header">
+    <h1>Attack Path Visualizer</h1>
+    <div class="header-controls">
+      <div class="ws-status" *ngIf="service.isDebugMode">
+        <span class="ws-dot" [class.ok]="service.wsConnected" [class.bad]="!service.wsConnected"></span>
+        {{ service.wsConnected ? 'connected' : 'disconnected' }}
+      </div>
+      <button type="button" class="mode-button" (click)="service.toggleMode()">
+        {{ service.isDebugMode ? 'Debug Mode' : 'Production Mode' }}
+      </button>
+    </div>
+  </header>
+
+  <div class="alert-overlay" role="alertdialog" aria-modal="true" *ngIf="service.detectionAlert">
+    <div class="alert-panel">
+      <div class="alert-title">Detection Alert</div>
+      <div class="alert-body">
+        <div>Device: {{ service.getNodeLabel(service.detectionAlert.device_id) }}</div>
+        <div>Event: {{ service.detectionAlert.event || 'detection' }}</div>
+        <div>Detail: {{ service.detectionAlert.detail || '-' }}</div>
+      </div>
+      <button type="button" (click)="service.closeAlert()">Close</button>
+    </div>
+  </div>
+
+  <router-outlet></router-outlet>
+</div>

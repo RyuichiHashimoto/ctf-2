@@ -1,0 +1,30 @@
+<div class="path-table">
+  <div class="path-title">Attack Paths</div>
+  <table>
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Attacked Node</th>
+        <th>Asset</th>
+        <th>Risk</th>
+        <th *ngIf="service.isDebugMode">Debug</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let row of service.pathRows; trackBy: trackByRowId"
+        (mouseenter)="setSelectedPath(row.path)"
+        (mouseleave)="setSelectedPath(null)"
+      >
+        <td>{{ row.id }}</td>
+        <td>{{ row.start }}</td>
+        <td>{{ row.end }}</td>
+        <td>{{ row.risk }}</td>
+        <td *ngIf="service.isDebugMode">{{ row.displayFlag }}</td>
+      </tr>
+      <tr *ngIf="service.pathRows.length === 0">
+        <td [attr.colspan]="service.isDebugMode ? 5 : 4">Select Attack Detected Node.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

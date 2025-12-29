@@ -1,0 +1,13 @@
+<div class="canvas-content">
+  <ng-container *ngIf="service.graphData; else renderPlaceholder">
+    <div class="cy-shell">
+      <div class="cy-title">Network Configuration Graph</div>
+      <div class="mx-container" #mxContainer></div>
+    </div>
+    <app-attack-path-table></app-attack-path-table>
+  </ng-container>
+</div>
+
+<ng-template #renderPlaceholder>
+  <div class="placeholder">Renderボタンを押してGraph APIから取得してください。</div>
+</ng-template>

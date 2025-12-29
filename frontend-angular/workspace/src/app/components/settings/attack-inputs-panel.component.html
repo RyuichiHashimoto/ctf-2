@@ -1,0 +1,56 @@
+<div class="field-group">
+  <div class="field-group-header">
+    <div class="field-group-title">Attack Inputs</div>
+    <button type="button" class="secondary small" (click)="service.clearAttackInputs()">
+      Clear
+    </button>
+  </div>
+
+  <label class="field-label prominent" for="entry-point">Attacked Node</label>
+  <select
+    id="entry-point"
+    [ngModel]="service.entryPoint"
+    (ngModelChange)="onEntryPointChange($event)"
+  >
+    <option value="">Select node</option>
+    <option *ngFor="let node of service.listNodes" [value]="node.id">
+      {{ node.label }}
+    </option>
+  </select>
+
+  <label class="field-label prominent" for="attack-tactic">Attack Tactic</label>
+  <select
+    id="attack-tactic"
+    [ngModel]="service.attackTactic"
+    (focus)="ensureTacticsLoaded()"
+    (ngModelChange)="onAttackTacticChange($event)"
+  >
+    <option value="">Select tactic</option>
+    <option *ngFor="let tactic of service.mitreTactics" [value]="tactic.shortname">
+      {{ tactic.name }}
+    </option>
+  </select>
+
+  <label class="field-label prominent" for="attack-technique">Attack Technique</label>
+  <select
+    id="attack-technique"
+    [disabled]="!service.attackTactic"
+    [ngModel]="service.attackTechnique"
+    (ngModelChange)="onAttackTechniqueChange($event)"
+  >
+    <option value="">Select technique</option>
+    <option *ngFor="let technique of service.mitreTechniques" [value]="technique.technique_id">
+      {{ technique.name }} ({{ technique.technique_id }})
+    </option>
+  </select>
+
+  <label class="field-label prominent" for="attack-data">Attack Acquired Data</label>
+  <select
+    id="attack-data"
+    [ngModel]="service.attackData"
+    (ngModelChange)="onAttackDataChange($event)"
+  >
+    <option value="">Select Data</option>
+    <option value="Asset Locations (File Server)">Asset Locations (File Server)</option>
+  </select>
+</div>

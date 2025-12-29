@@ -2,3 +2,5 @@ fastapi==0.110.0
 uvicorn==0.27.1
 websockets==12.0
 networkx==3.2.1
+python-multipart==0.0.9
+peewee==3.17.3
