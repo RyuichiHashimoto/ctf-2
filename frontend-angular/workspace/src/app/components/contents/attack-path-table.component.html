@@ -1,5 +1,10 @@
 <div class="path-table">
-  <div class="path-title">Attack Paths</div>
+  <div class="path-title">
+    <span>Attack Paths</span>
+    <span class="path-count" *ngIf="service.pathRows.length > 0">
+      {{ service.pathRows.length }}
+    </span>
+  </div>
   <table>
     <thead>
       <tr>

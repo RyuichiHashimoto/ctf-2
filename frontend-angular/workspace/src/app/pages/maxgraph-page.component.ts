@@ -13,7 +13,7 @@ export class MaxGraphPageComponent implements OnInit {
   constructor(public readonly service: AttackPathService) {}
 
   ngOnInit(): void {
-    this.service.loadTactics();
-    this.service.connectWebSocket();
+    this.service.loadAttackScenarios();
+    // this.service.connectWebSocket();
   }
 }

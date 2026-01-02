@@ -2,19 +2,44 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field, asdict
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
 
 class AsDictMixin:
     def asdict(self) -> dict[str, Any]:
-        return asdict(self)
+        def convert_value(value: Any) -> Any:
+            if isinstance(value, Enum):
+                return value.value
+            if isinstance(value, list):
+                return [convert_value(item) for item in value]
+            if isinstance(value, dict):
+                return {key: convert_value(val) for key, val in value.items()}
+            return value
+
+        return asdict(self, dict_factory=lambda items: {k: convert_value(v) for k, v in items})
+
+class NodeType(str, Enum):
+    ENTRY = "entry"
+    PIVOT = "pivot"
+    ASSET = "asset"
+    UNKNOWN = "unknown"
+
+    @classmethod
+    def from_value(cls, value: str | None) -> "NodeType":
+        if not value:
+            return cls.UNKNOWN
+        try:
+            return cls(value)
+        except ValueError:
+            return cls.UNKNOWN
 
 @dataclass(frozen=True)
 class GraphNode(AsDictMixin):
     id: str
     label: str
-    type: str
+    type: NodeType
     techniques: list[str] = field(default_factory=list)
     features: list[str] = field(default_factory=list)
 
@@ -35,7 +60,7 @@ class GraphContain(AsDictMixin):
 
 
 @dataclass(frozen=True)
-class GraphData:
+class GraphData(AsDictMixin):
     nodes: list[GraphNode]
     edges: list[GraphEdge]
     contains: list[GraphContain] = field(default_factory=list)
@@ -48,7 +73,7 @@ def _parse_node(raw: dict[str, Any]) -> GraphNode:
     return GraphNode(
         id=str(node_id),
         label=str(raw.get("label") or raw.get("labe;") or node_id),
-        type=str(raw.get("type") or "unknown"),
+        type=NodeType.from_value(str(raw.get("type") or "unknown")),
         techniques=list(raw.get("techniques") or []),
         features=list(raw.get("features") or [])
     )
@@ -64,7 +89,7 @@ def _parse_edge(raw: dict[str, Any], index: int) -> GraphEdge:
         id=str(edge_id),
         source=str(source),
         target=str(target),
-        risk=float(raw.get("risk", 0.1)),
+        risk=float(raw.get("risk", 1.0)),
     )
 
 
@@ -149,6 +174,45 @@ def validate_graph(graph: GraphData) -> None:
 
     if errors:
         raise ValueError("; ".join(errors))
+
+
+def asset_node_ids(graph: GraphData) -> list[str]:
+    """Return node ids for nodes marked as assets."""
+    return [node.id for node in graph.nodes if node.type == NodeType.ASSET]
+
+
+def graphdata_to_payload(graph: GraphData) -> dict[str, Any]:
+    """Convert GraphData into a JSON-friendly payload."""
+    return {
+        "nodes": [
+            {
+                "id": node.id,
+                "label": node.label,
+                "type": node.type.value,
+                "techniques": list(node.techniques),
+                "features": list(node.features)
+            }
+            for node in graph.nodes
+        ],
+        "edges": [
+            {
+                "id": edge.id,
+                "source": edge.source,
+                "target": edge.target,
+                "prob": edge.risk
+            }
+            for edge in graph.edges
+        ],
+        "contains": [
+            {
+                "id": contain.id,
+                "parent": contain.parent,
+                "child": contain.child,
+                "label": contain.label
+            }
+            for contain in graph.contains
+        ]
+    }
 
 if __name__ == "__main__":
     data = "../../../data/sample_configuration_1.json"

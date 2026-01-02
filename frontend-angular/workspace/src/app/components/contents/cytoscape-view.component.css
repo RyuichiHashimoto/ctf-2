@@ -1,0 +1,8 @@
+:host {
+  --cy-node-entry: #2563eb;
+  --cy-node-tactic: #7c3aed;
+  --cy-node-pivot: #0f766e;
+  --cy-node-asset: #f59e0b;
+  --cy-node-goal: #dc2626;
+  --cy-node-unknown: #64748b;
+}

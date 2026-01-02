@@ -1,0 +1,2194 @@
+{
+  "graph": {
+    "node": [
+      {
+        "id": "en-1",
+        "label": "Internet Gateway",
+        "type": "entry",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "en-2",
+        "label": "Public Web Server",
+        "type": "entry",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "en-3",
+        "label": "DMZ Load Balancer",
+        "type": "entry",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "en-4",
+        "label": "VPN Gateway",
+        "type": "entry",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "en-5",
+        "label": "Email Gateway",
+        "type": "entry",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-6",
+        "label": "App Server",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-7",
+        "label": "API Gateway",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-8",
+        "label": "Jump Host",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-9",
+        "label": "Bastion Host",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-10",
+        "label": "Web Proxy",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-11",
+        "label": "Reverse Proxy",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-12",
+        "label": "Firewall",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-13",
+        "label": "WAF",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-14",
+        "label": "SIEM Server",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-15",
+        "label": "Domain Controller",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-16",
+        "label": "Endpoint Manager",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-17",
+        "label": "Log Collector",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-18",
+        "label": "LDAP Server",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-19",
+        "label": "RADIUS Server",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-20",
+        "label": "Patch Server",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-21",
+        "label": "Management Server",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-22",
+        "label": "Orchestration Server",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-23",
+        "label": "Monitoring Server",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-24",
+        "label": "Network Switch",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "pi-25",
+        "label": "Core Router",
+        "type": "pivot",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-26",
+        "label": "File Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-27",
+        "label": "Payroll DB",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-28",
+        "label": "CRM Database",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-29",
+        "label": "HR Database",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-30",
+        "label": "Finance Database",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-31",
+        "label": "Customer Data Store",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-32",
+        "label": "Source Code Repository",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-33",
+        "label": "Backup Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-34",
+        "label": "Document Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-35",
+        "label": "Data Warehouse",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-36",
+        "label": "CI Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-37",
+        "label": "Artifact Repository",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-38",
+        "label": "Email Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-39",
+        "label": "DNS Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-40",
+        "label": "NTP Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-41",
+        "label": "Auth Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-42",
+        "label": "Key Management Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-43",
+        "label": "Secrets Vault",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-44",
+        "label": "BI Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-45",
+        "label": "Reporting Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-46",
+        "label": "Analytics Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-47",
+        "label": "Cache Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-48",
+        "label": "Message Broker",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-49",
+        "label": "Search Cluster",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-50",
+        "label": "Storage Array",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-51",
+        "label": "NAS Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-52",
+        "label": "SAN Controller",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-53",
+        "label": "SFTP Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-54",
+        "label": "Kubernetes Master",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-55",
+        "label": "Container Registry",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-56",
+        "label": "Build Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-57",
+        "label": "Test Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-58",
+        "label": "Staging Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-59",
+        "label": "Production Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-60",
+        "label": "License Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-61",
+        "label": "Telemetry Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-62",
+        "label": "Compliance Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-63",
+        "label": "Incident Response Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-64",
+        "label": "Threat Intel Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-65",
+        "label": "AV Management Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-66",
+        "label": "Asset Inventory Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-67",
+        "label": "CMDB Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-68",
+        "label": "Ticketing Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-69",
+        "label": "ERP Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-70",
+        "label": "E-commerce Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-71",
+        "label": "IoT Gateway",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-72",
+        "label": "SCADA Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-73",
+        "label": "PLC Controller",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-74",
+        "label": "POS Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-75",
+        "label": "VoIP Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-76",
+        "label": "Video Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-77",
+        "label": "Print Server",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-78",
+        "label": "Proxy Cache",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-79",
+        "label": "Mail Archive",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-80",
+        "label": "Web Analytics",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-81",
+        "label": "Customer Portal",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-82",
+        "label": "Partner Portal",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-83",
+        "label": "Mobile Backend",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-84",
+        "label": "SAML IdP",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "as-85",
+        "label": "PKI CA",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "go-86",
+        "label": "Critical Asset 1",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "go-87",
+        "label": "Critical Asset 2",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "go-88",
+        "label": "Critical Asset 3",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "go-89",
+        "label": "Critical Asset 4",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "go-90",
+        "label": "Critical Asset 5",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "go-91",
+        "label": "Critical Asset 6",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "go-92",
+        "label": "Critical Asset 7",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "go-93",
+        "label": "Critical Asset 8",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "go-94",
+        "label": "Critical Asset 9",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      },
+      {
+        "id": "go-95",
+        "label": "Critical Asset 10",
+        "type": "asset",
+        "techniques": [
+          "T1078",
+          "T1041"
+        ],
+        "features": []
+      }
+    ],
+    "edge": [
+      {
+        "id": "e-1",
+        "source": "en-1",
+        "target": "pi-6",
+        "risk": 0.6
+      },
+      {
+        "id": "e-2",
+        "source": "en-1",
+        "target": "pi-11",
+        "risk": 0.6
+      },
+      {
+        "id": "e-3",
+        "source": "en-1",
+        "target": "pi-16",
+        "risk": 0.6
+      },
+      {
+        "id": "e-4",
+        "source": "en-1",
+        "target": "pi-21",
+        "risk": 0.6
+      },
+      {
+        "id": "e-5",
+        "source": "en-2",
+        "target": "pi-7",
+        "risk": 0.6
+      },
+      {
+        "id": "e-6",
+        "source": "en-2",
+        "target": "pi-12",
+        "risk": 0.6
+      },
+      {
+        "id": "e-7",
+        "source": "en-2",
+        "target": "pi-17",
+        "risk": 0.6
+      },
+      {
+        "id": "e-8",
+        "source": "en-2",
+        "target": "pi-22",
+        "risk": 0.6
+      },
+      {
+        "id": "e-9",
+        "source": "en-3",
+        "target": "pi-8",
+        "risk": 0.6
+      },
+      {
+        "id": "e-10",
+        "source": "en-3",
+        "target": "pi-13",
+        "risk": 0.6
+      },
+      {
+        "id": "e-11",
+        "source": "en-3",
+        "target": "pi-18",
+        "risk": 0.6
+      },
+      {
+        "id": "e-12",
+        "source": "en-3",
+        "target": "pi-23",
+        "risk": 0.6
+      },
+      {
+        "id": "e-13",
+        "source": "en-4",
+        "target": "pi-9",
+        "risk": 0.6
+      },
+      {
+        "id": "e-14",
+        "source": "en-4",
+        "target": "pi-14",
+        "risk": 0.6
+      },
+      {
+        "id": "e-15",
+        "source": "en-4",
+        "target": "pi-19",
+        "risk": 0.6
+      },
+      {
+        "id": "e-16",
+        "source": "en-4",
+        "target": "pi-24",
+        "risk": 0.6
+      },
+      {
+        "id": "e-17",
+        "source": "en-5",
+        "target": "pi-10",
+        "risk": 0.6
+      },
+      {
+        "id": "e-18",
+        "source": "en-5",
+        "target": "pi-15",
+        "risk": 0.6
+      },
+      {
+        "id": "e-19",
+        "source": "en-5",
+        "target": "pi-20",
+        "risk": 0.6
+      },
+      {
+        "id": "e-20",
+        "source": "en-5",
+        "target": "pi-25",
+        "risk": 0.6
+      },
+      {
+        "id": "e-21",
+        "source": "pi-6",
+        "target": "as-26",
+        "risk": 0.6
+      },
+      {
+        "id": "e-22",
+        "source": "pi-6",
+        "target": "as-32",
+        "risk": 0.6
+      },
+      {
+        "id": "e-23",
+        "source": "pi-6",
+        "target": "as-38",
+        "risk": 0.6
+      },
+      {
+        "id": "e-24",
+        "source": "pi-6",
+        "target": "as-44",
+        "risk": 0.6
+      },
+      {
+        "id": "e-25",
+        "source": "pi-6",
+        "target": "as-50",
+        "risk": 0.6
+      },
+      {
+        "id": "e-26",
+        "source": "pi-6",
+        "target": "as-56",
+        "risk": 0.6
+      },
+      {
+        "id": "e-27",
+        "source": "pi-6",
+        "target": "as-62",
+        "risk": 0.6
+      },
+      {
+        "id": "e-28",
+        "source": "pi-6",
+        "target": "as-68",
+        "risk": 0.6
+      },
+      {
+        "id": "e-29",
+        "source": "pi-6",
+        "target": "as-74",
+        "risk": 0.6
+      },
+      {
+        "id": "e-30",
+        "source": "pi-6",
+        "target": "as-80",
+        "risk": 0.6
+      },
+      {
+        "id": "e-31",
+        "source": "pi-7",
+        "target": "as-27",
+        "risk": 0.6
+      },
+      {
+        "id": "e-32",
+        "source": "pi-7",
+        "target": "as-33",
+        "risk": 0.6
+      },
+      {
+        "id": "e-33",
+        "source": "pi-7",
+        "target": "as-39",
+        "risk": 0.6
+      },
+      {
+        "id": "e-34",
+        "source": "pi-7",
+        "target": "as-45",
+        "risk": 0.6
+      },
+      {
+        "id": "e-35",
+        "source": "pi-7",
+        "target": "as-51",
+        "risk": 0.6
+      },
+      {
+        "id": "e-36",
+        "source": "pi-7",
+        "target": "as-57",
+        "risk": 0.6
+      },
+      {
+        "id": "e-37",
+        "source": "pi-7",
+        "target": "as-63",
+        "risk": 0.6
+      },
+      {
+        "id": "e-38",
+        "source": "pi-7",
+        "target": "as-69",
+        "risk": 0.6
+      },
+      {
+        "id": "e-39",
+        "source": "pi-7",
+        "target": "as-75",
+        "risk": 0.6
+      },
+      {
+        "id": "e-40",
+        "source": "pi-7",
+        "target": "as-81",
+        "risk": 0.6
+      },
+      {
+        "id": "e-41",
+        "source": "pi-8",
+        "target": "as-28",
+        "risk": 0.6
+      },
+      {
+        "id": "e-42",
+        "source": "pi-8",
+        "target": "as-34",
+        "risk": 0.6
+      },
+      {
+        "id": "e-43",
+        "source": "pi-8",
+        "target": "as-40",
+        "risk": 0.6
+      },
+      {
+        "id": "e-44",
+        "source": "pi-8",
+        "target": "as-46",
+        "risk": 0.6
+      },
+      {
+        "id": "e-45",
+        "source": "pi-8",
+        "target": "as-52",
+        "risk": 0.6
+      },
+      {
+        "id": "e-46",
+        "source": "pi-8",
+        "target": "as-58",
+        "risk": 0.6
+      },
+      {
+        "id": "e-47",
+        "source": "pi-8",
+        "target": "as-64",
+        "risk": 0.6
+      },
+      {
+        "id": "e-48",
+        "source": "pi-8",
+        "target": "as-70",
+        "risk": 0.6
+      },
+      {
+        "id": "e-49",
+        "source": "pi-8",
+        "target": "as-76",
+        "risk": 0.6
+      },
+      {
+        "id": "e-50",
+        "source": "pi-8",
+        "target": "as-82",
+        "risk": 0.6
+      },
+      {
+        "id": "e-51",
+        "source": "pi-9",
+        "target": "as-29",
+        "risk": 0.6
+      },
+      {
+        "id": "e-52",
+        "source": "pi-9",
+        "target": "as-35",
+        "risk": 0.6
+      },
+      {
+        "id": "e-53",
+        "source": "pi-9",
+        "target": "as-41",
+        "risk": 0.6
+      },
+      {
+        "id": "e-54",
+        "source": "pi-9",
+        "target": "as-47",
+        "risk": 0.6
+      },
+      {
+        "id": "e-55",
+        "source": "pi-9",
+        "target": "as-53",
+        "risk": 0.6
+      },
+      {
+        "id": "e-56",
+        "source": "pi-9",
+        "target": "as-59",
+        "risk": 0.6
+      },
+      {
+        "id": "e-57",
+        "source": "pi-9",
+        "target": "as-65",
+        "risk": 0.6
+      },
+      {
+        "id": "e-58",
+        "source": "pi-9",
+        "target": "as-71",
+        "risk": 0.6
+      },
+      {
+        "id": "e-59",
+        "source": "pi-9",
+        "target": "as-77",
+        "risk": 0.6
+      },
+      {
+        "id": "e-60",
+        "source": "pi-9",
+        "target": "as-83",
+        "risk": 0.6
+      },
+      {
+        "id": "e-61",
+        "source": "pi-10",
+        "target": "as-30",
+        "risk": 0.6
+      },
+      {
+        "id": "e-62",
+        "source": "pi-10",
+        "target": "as-36",
+        "risk": 0.6
+      },
+      {
+        "id": "e-63",
+        "source": "pi-10",
+        "target": "as-42",
+        "risk": 0.6
+      },
+      {
+        "id": "e-64",
+        "source": "pi-10",
+        "target": "as-48",
+        "risk": 0.6
+      },
+      {
+        "id": "e-65",
+        "source": "pi-10",
+        "target": "as-54",
+        "risk": 0.6
+      },
+      {
+        "id": "e-66",
+        "source": "pi-10",
+        "target": "as-60",
+        "risk": 0.6
+      },
+      {
+        "id": "e-67",
+        "source": "pi-10",
+        "target": "as-66",
+        "risk": 0.6
+      },
+      {
+        "id": "e-68",
+        "source": "pi-10",
+        "target": "as-72",
+        "risk": 0.6
+      },
+      {
+        "id": "e-69",
+        "source": "pi-10",
+        "target": "as-78",
+        "risk": 0.6
+      },
+      {
+        "id": "e-70",
+        "source": "pi-10",
+        "target": "as-84",
+        "risk": 0.6
+      },
+      {
+        "id": "e-71",
+        "source": "pi-11",
+        "target": "as-31",
+        "risk": 0.6
+      },
+      {
+        "id": "e-72",
+        "source": "pi-11",
+        "target": "as-37",
+        "risk": 0.6
+      },
+      {
+        "id": "e-73",
+        "source": "pi-11",
+        "target": "as-43",
+        "risk": 0.6
+      },
+      {
+        "id": "e-74",
+        "source": "pi-11",
+        "target": "as-49",
+        "risk": 0.6
+      },
+      {
+        "id": "e-75",
+        "source": "pi-11",
+        "target": "as-55",
+        "risk": 0.6
+      },
+      {
+        "id": "e-76",
+        "source": "pi-11",
+        "target": "as-61",
+        "risk": 0.6
+      },
+      {
+        "id": "e-77",
+        "source": "pi-11",
+        "target": "as-67",
+        "risk": 0.6
+      },
+      {
+        "id": "e-78",
+        "source": "pi-11",
+        "target": "as-73",
+        "risk": 0.6
+      },
+      {
+        "id": "e-79",
+        "source": "pi-11",
+        "target": "as-79",
+        "risk": 0.6
+      },
+      {
+        "id": "e-80",
+        "source": "pi-11",
+        "target": "as-85",
+        "risk": 0.6
+      },
+      {
+        "id": "e-81",
+        "source": "pi-12",
+        "target": "as-32",
+        "risk": 0.6
+      },
+      {
+        "id": "e-82",
+        "source": "pi-12",
+        "target": "as-38",
+        "risk": 0.6
+      },
+      {
+        "id": "e-83",
+        "source": "pi-12",
+        "target": "as-44",
+        "risk": 0.6
+      },
+      {
+        "id": "e-84",
+        "source": "pi-12",
+        "target": "as-50",
+        "risk": 0.6
+      },
+      {
+        "id": "e-85",
+        "source": "pi-12",
+        "target": "as-56",
+        "risk": 0.6
+      },
+      {
+        "id": "e-86",
+        "source": "pi-12",
+        "target": "as-62",
+        "risk": 0.6
+      },
+      {
+        "id": "e-87",
+        "source": "pi-12",
+        "target": "as-68",
+        "risk": 0.6
+      },
+      {
+        "id": "e-88",
+        "source": "pi-12",
+        "target": "as-74",
+        "risk": 0.6
+      },
+      {
+        "id": "e-89",
+        "source": "pi-12",
+        "target": "as-80",
+        "risk": 0.6
+      },
+      {
+        "id": "e-90",
+        "source": "pi-13",
+        "target": "as-33",
+        "risk": 0.6
+      },
+      {
+        "id": "e-91",
+        "source": "pi-13",
+        "target": "as-39",
+        "risk": 0.6
+      },
+      {
+        "id": "e-92",
+        "source": "pi-13",
+        "target": "as-45",
+        "risk": 0.6
+      },
+      {
+        "id": "e-93",
+        "source": "pi-13",
+        "target": "as-51",
+        "risk": 0.6
+      },
+      {
+        "id": "e-94",
+        "source": "pi-13",
+        "target": "as-57",
+        "risk": 0.6
+      },
+      {
+        "id": "e-95",
+        "source": "pi-13",
+        "target": "as-63",
+        "risk": 0.6
+      },
+      {
+        "id": "e-96",
+        "source": "pi-13",
+        "target": "as-69",
+        "risk": 0.6
+      },
+      {
+        "id": "e-97",
+        "source": "pi-13",
+        "target": "as-75",
+        "risk": 0.6
+      },
+      {
+        "id": "e-98",
+        "source": "pi-13",
+        "target": "as-81",
+        "risk": 0.6
+      },
+      {
+        "id": "e-99",
+        "source": "pi-14",
+        "target": "as-34",
+        "risk": 0.6
+      },
+      {
+        "id": "e-100",
+        "source": "pi-14",
+        "target": "as-40",
+        "risk": 0.6
+      },
+      {
+        "id": "e-101",
+        "source": "pi-14",
+        "target": "as-46",
+        "risk": 0.6
+      },
+      {
+        "id": "e-102",
+        "source": "pi-14",
+        "target": "as-52",
+        "risk": 0.6
+      },
+      {
+        "id": "e-103",
+        "source": "pi-14",
+        "target": "as-58",
+        "risk": 0.6
+      },
+      {
+        "id": "e-104",
+        "source": "pi-14",
+        "target": "as-64",
+        "risk": 0.6
+      },
+      {
+        "id": "e-105",
+        "source": "pi-14",
+        "target": "as-70",
+        "risk": 0.6
+      },
+      {
+        "id": "e-106",
+        "source": "pi-14",
+        "target": "as-76",
+        "risk": 0.6
+      },
+      {
+        "id": "e-107",
+        "source": "pi-14",
+        "target": "as-82",
+        "risk": 0.6
+      },
+      {
+        "id": "e-108",
+        "source": "pi-15",
+        "target": "as-35",
+        "risk": 0.6
+      },
+      {
+        "id": "e-109",
+        "source": "pi-15",
+        "target": "as-41",
+        "risk": 0.6
+      },
+      {
+        "id": "e-110",
+        "source": "pi-15",
+        "target": "as-47",
+        "risk": 0.6
+      },
+      {
+        "id": "e-111",
+        "source": "pi-15",
+        "target": "as-53",
+        "risk": 0.6
+      },
+      {
+        "id": "e-112",
+        "source": "pi-15",
+        "target": "as-59",
+        "risk": 0.6
+      },
+      {
+        "id": "e-113",
+        "source": "pi-15",
+        "target": "as-65",
+        "risk": 0.6
+      },
+      {
+        "id": "e-114",
+        "source": "pi-15",
+        "target": "as-71",
+        "risk": 0.6
+      },
+      {
+        "id": "e-115",
+        "source": "pi-15",
+        "target": "as-77",
+        "risk": 0.6
+      },
+      {
+        "id": "e-116",
+        "source": "pi-15",
+        "target": "as-83",
+        "risk": 0.6
+      },
+      {
+        "id": "e-117",
+        "source": "pi-16",
+        "target": "as-36",
+        "risk": 0.6
+      },
+      {
+        "id": "e-118",
+        "source": "pi-16",
+        "target": "as-42",
+        "risk": 0.6
+      },
+      {
+        "id": "e-119",
+        "source": "pi-16",
+        "target": "as-48",
+        "risk": 0.6
+      },
+      {
+        "id": "e-120",
+        "source": "pi-16",
+        "target": "as-54",
+        "risk": 0.6
+      },
+      {
+        "id": "e-121",
+        "source": "pi-16",
+        "target": "as-60",
+        "risk": 0.6
+      },
+      {
+        "id": "e-122",
+        "source": "pi-16",
+        "target": "as-66",
+        "risk": 0.6
+      },
+      {
+        "id": "e-123",
+        "source": "pi-16",
+        "target": "as-72",
+        "risk": 0.6
+      },
+      {
+        "id": "e-124",
+        "source": "pi-16",
+        "target": "as-78",
+        "risk": 0.6
+      },
+      {
+        "id": "e-125",
+        "source": "pi-16",
+        "target": "as-84",
+        "risk": 0.6
+      },
+      {
+        "id": "e-126",
+        "source": "pi-17",
+        "target": "as-37",
+        "risk": 0.6
+      },
+      {
+        "id": "e-127",
+        "source": "pi-17",
+        "target": "as-43",
+        "risk": 0.6
+      },
+      {
+        "id": "e-128",
+        "source": "pi-17",
+        "target": "as-49",
+        "risk": 0.6
+      },
+      {
+        "id": "e-129",
+        "source": "pi-17",
+        "target": "as-55",
+        "risk": 0.6
+      },
+      {
+        "id": "e-130",
+        "source": "pi-17",
+        "target": "as-61",
+        "risk": 0.6
+      },
+      {
+        "id": "e-131",
+        "source": "pi-17",
+        "target": "as-67",
+        "risk": 0.6
+      },
+      {
+        "id": "e-132",
+        "source": "pi-17",
+        "target": "as-73",
+        "risk": 0.6
+      },
+      {
+        "id": "e-133",
+        "source": "pi-17",
+        "target": "as-79",
+        "risk": 0.6
+      },
+      {
+        "id": "e-134",
+        "source": "pi-17",
+        "target": "as-85",
+        "risk": 0.6
+      },
+      {
+        "id": "e-135",
+        "source": "pi-18",
+        "target": "as-38",
+        "risk": 0.6
+      },
+      {
+        "id": "e-136",
+        "source": "pi-18",
+        "target": "as-44",
+        "risk": 0.6
+      },
+      {
+        "id": "e-137",
+        "source": "pi-18",
+        "target": "as-50",
+        "risk": 0.6
+      },
+      {
+        "id": "e-138",
+        "source": "pi-18",
+        "target": "as-56",
+        "risk": 0.6
+      },
+      {
+        "id": "e-139",
+        "source": "pi-18",
+        "target": "as-62",
+        "risk": 0.6
+      },
+      {
+        "id": "e-140",
+        "source": "pi-18",
+        "target": "as-68",
+        "risk": 0.6
+      },
+      {
+        "id": "e-141",
+        "source": "pi-18",
+        "target": "as-74",
+        "risk": 0.6
+      },
+      {
+        "id": "e-142",
+        "source": "pi-18",
+        "target": "as-80",
+        "risk": 0.6
+      },
+      {
+        "id": "e-143",
+        "source": "pi-19",
+        "target": "as-39",
+        "risk": 0.6
+      },
+      {
+        "id": "e-144",
+        "source": "pi-19",
+        "target": "as-45",
+        "risk": 0.6
+      },
+      {
+        "id": "e-145",
+        "source": "pi-19",
+        "target": "as-51",
+        "risk": 0.6
+      },
+      {
+        "id": "e-146",
+        "source": "pi-19",
+        "target": "as-57",
+        "risk": 0.6
+      },
+      {
+        "id": "e-147",
+        "source": "pi-19",
+        "target": "as-63",
+        "risk": 0.6
+      },
+      {
+        "id": "e-148",
+        "source": "pi-19",
+        "target": "as-69",
+        "risk": 0.6
+      },
+      {
+        "id": "e-149",
+        "source": "pi-19",
+        "target": "as-75",
+        "risk": 0.6
+      },
+      {
+        "id": "e-150",
+        "source": "pi-19",
+        "target": "as-81",
+        "risk": 0.6
+      },
+      {
+        "id": "e-151",
+        "source": "pi-20",
+        "target": "as-40",
+        "risk": 0.6
+      },
+      {
+        "id": "e-152",
+        "source": "pi-20",
+        "target": "as-46",
+        "risk": 0.6
+      },
+      {
+        "id": "e-153",
+        "source": "pi-20",
+        "target": "as-52",
+        "risk": 0.6
+      },
+      {
+        "id": "e-154",
+        "source": "pi-20",
+        "target": "as-58",
+        "risk": 0.6
+      },
+      {
+        "id": "e-155",
+        "source": "pi-20",
+        "target": "as-64",
+        "risk": 0.6
+      },
+      {
+        "id": "e-156",
+        "source": "pi-20",
+        "target": "as-70",
+        "risk": 0.6
+      },
+      {
+        "id": "e-157",
+        "source": "pi-20",
+        "target": "as-76",
+        "risk": 0.6
+      },
+      {
+        "id": "e-158",
+        "source": "pi-20",
+        "target": "as-82",
+        "risk": 0.6
+      },
+      {
+        "id": "e-159",
+        "source": "pi-21",
+        "target": "as-41",
+        "risk": 0.6
+      },
+      {
+        "id": "e-160",
+        "source": "pi-21",
+        "target": "as-47",
+        "risk": 0.6
+      },
+      {
+        "id": "e-161",
+        "source": "pi-21",
+        "target": "as-53",
+        "risk": 0.6
+      },
+      {
+        "id": "e-162",
+        "source": "pi-21",
+        "target": "as-59",
+        "risk": 0.6
+      },
+      {
+        "id": "e-163",
+        "source": "pi-21",
+        "target": "as-65",
+        "risk": 0.6
+      },
+      {
+        "id": "e-164",
+        "source": "pi-21",
+        "target": "as-71",
+        "risk": 0.6
+      },
+      {
+        "id": "e-165",
+        "source": "pi-21",
+        "target": "as-77",
+        "risk": 0.6
+      },
+      {
+        "id": "e-166",
+        "source": "pi-21",
+        "target": "as-83",
+        "risk": 0.6
+      },
+      {
+        "id": "e-167",
+        "source": "pi-22",
+        "target": "as-42",
+        "risk": 0.6
+      },
+      {
+        "id": "e-168",
+        "source": "pi-22",
+        "target": "as-48",
+        "risk": 0.6
+      },
+      {
+        "id": "e-169",
+        "source": "pi-22",
+        "target": "as-54",
+        "risk": 0.6
+      },
+      {
+        "id": "e-170",
+        "source": "pi-22",
+        "target": "as-60",
+        "risk": 0.6
+      },
+      {
+        "id": "e-171",
+        "source": "pi-22",
+        "target": "as-66",
+        "risk": 0.6
+      },
+      {
+        "id": "e-172",
+        "source": "pi-22",
+        "target": "as-72",
+        "risk": 0.6
+      },
+      {
+        "id": "e-173",
+        "source": "pi-22",
+        "target": "as-78",
+        "risk": 0.6
+      },
+      {
+        "id": "e-174",
+        "source": "pi-22",
+        "target": "as-84",
+        "risk": 0.6
+      },
+      {
+        "id": "e-175",
+        "source": "pi-23",
+        "target": "as-43",
+        "risk": 0.6
+      },
+      {
+        "id": "e-176",
+        "source": "pi-23",
+        "target": "as-49",
+        "risk": 0.6
+      },
+      {
+        "id": "e-177",
+        "source": "pi-23",
+        "target": "as-55",
+        "risk": 0.6
+      },
+      {
+        "id": "e-178",
+        "source": "pi-23",
+        "target": "as-61",
+        "risk": 0.6
+      },
+      {
+        "id": "e-179",
+        "source": "pi-23",
+        "target": "as-67",
+        "risk": 0.6
+      },
+      {
+        "id": "e-180",
+        "source": "pi-23",
+        "target": "as-73",
+        "risk": 0.6
+      },
+      {
+        "id": "e-181",
+        "source": "pi-23",
+        "target": "as-79",
+        "risk": 0.6
+      },
+      {
+        "id": "e-182",
+        "source": "pi-23",
+        "target": "as-85",
+        "risk": 0.6
+      },
+      {
+        "id": "e-183",
+        "source": "pi-24",
+        "target": "as-44",
+        "risk": 0.6
+      },
+      {
+        "id": "e-184",
+        "source": "pi-24",
+        "target": "as-50",
+        "risk": 0.6
+      },
+      {
+        "id": "e-185",
+        "source": "pi-24",
+        "target": "as-56",
+        "risk": 0.6
+      },
+      {
+        "id": "e-186",
+        "source": "pi-24",
+        "target": "as-62",
+        "risk": 0.6
+      },
+      {
+        "id": "e-187",
+        "source": "pi-24",
+        "target": "as-68",
+        "risk": 0.6
+      },
+      {
+        "id": "e-188",
+        "source": "pi-24",
+        "target": "as-74",
+        "risk": 0.6
+      },
+      {
+        "id": "e-189",
+        "source": "pi-24",
+        "target": "as-80",
+        "risk": 0.6
+      },
+      {
+        "id": "e-190",
+        "source": "pi-25",
+        "target": "as-45",
+        "risk": 0.6
+      },
+      {
+        "id": "e-191",
+        "source": "pi-25",
+        "target": "as-51",
+        "risk": 0.6
+      },
+      {
+        "id": "e-192",
+        "source": "pi-25",
+        "target": "as-57",
+        "risk": 0.6
+      },
+      {
+        "id": "e-193",
+        "source": "pi-25",
+        "target": "as-63",
+        "risk": 0.6
+      },
+      {
+        "id": "e-194",
+        "source": "pi-25",
+        "target": "as-69",
+        "risk": 0.6
+      },
+      {
+        "id": "e-195",
+        "source": "pi-25",
+        "target": "as-75",
+        "risk": 0.6
+      },
+      {
+        "id": "e-196",
+        "source": "pi-25",
+        "target": "as-81",
+        "risk": 0.6
+      },
+      {
+        "id": "e-197",
+        "source": "as-26",
+        "target": "go-86",
+        "risk": 0.5
+      },
+      {
+        "id": "e-198",
+        "source": "as-27",
+        "target": "go-87",
+        "risk": 0.5
+      },
+      {
+        "id": "e-199",
+        "source": "as-28",
+        "target": "go-88",
+        "risk": 0.5
+      },
+      {
+        "id": "e-200",
+        "source": "as-29",
+        "target": "go-89",
+        "risk": 0.5
+      },
+      {
+        "id": "e-201",
+        "source": "as-30",
+        "target": "go-90",
+        "risk": 0.5
+      },
+      {
+        "id": "e-202",
+        "source": "as-31",
+        "target": "go-91",
+        "risk": 0.5
+      },
+      {
+        "id": "e-203",
+        "source": "as-32",
+        "target": "go-92",
+        "risk": 0.5
+      },
+      {
+        "id": "e-204",
+        "source": "as-33",
+        "target": "go-93",
+        "risk": 0.5
+      },
+      {
+        "id": "e-205",
+        "source": "as-34",
+        "target": "go-94",
+        "risk": 0.5
+      },
+      {
+        "id": "e-206",
+        "source": "as-35",
+        "target": "go-95",
+        "risk": 0.5
+      }
+    ]
+  }
+}

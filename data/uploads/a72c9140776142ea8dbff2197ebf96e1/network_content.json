@@ -1,0 +1,23 @@
+{
+  "graph":{
+    "node": [
+      { "id": "en1", "label": "Web Server", "type": "entry","techniques": ["T1190"],"features": []},
+      { "id": "en2", "label": "VPN Server", "type": "entry","techniques": [""],"features": []},
+      { "id": "pi-1", "label": "Application Server", "type": "pivot","techniques": ["T1021.002", "T1003.001"],"features": []},
+      { "id": "pi-2", "label": "Firewall", "type": "pivot","techniques": [""],"features": []},
+      { "id": "as-1", "label": "DB Server", "type": "asset","techniques": ["T1021.001", "T1041"],"features": []},
+      { "id": "as-2", "label": "File Server", "type": "asset","techniques": ["", ""], "features": ["Asset Locations (File Server)"]},
+      { "id": "as-3", "label": "Client PC", "type": "asset", "techniques": ["", ""],"features": []}
+    ],
+    "edge": [
+      { "id": "s2-e1", "source": "en1", "target": "pi-1", "risk": 1.0},
+      { "id": "s2-e2", "source": "en1", "target": "pi-2", "risk": 1.0},
+      { "id": "s2-e3", "source": "pi-1", "target": "as-1", "risk": 1.0},
+      { "id": "s2-e4", "source": "pi-1", "target": "as-2", "risk": 1.0},
+      { "id": "s2-e5", "source": "pi-2", "target": "as-2", "risk": 1.0},
+      { "id": "s2-e6", "source": "pi-2", "target": "as-3", "risk": 1.0},
+      { "id": "s2-e7", "source": "en2", "target": "pi-2", "risk": 1.0}
+    ]
+  }
+}
+

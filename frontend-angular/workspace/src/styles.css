@@ -1,3 +1,5 @@
+@import "@maxgraph/core/css/common.css";
+
 :root {
   --ink: #12161f;
   --subtle: #5b6b82;
@@ -195,6 +197,8 @@ body {
   display: grid;
   gap: 12px;
   min-height: 420px;
+  max-height: 820px;
+  overflow: hidden;
 }
 
 .cy-title {
@@ -213,7 +217,9 @@ body {
 .mx-container {
   width: 100%;
   min-height: 360px;
-  height: 100%;
+  height: 360px;
+  position: relative;
+  overflow: hidden;
 }
 
 .path-table {
@@ -229,6 +235,19 @@ body {
   letter-spacing: 1.4px;
   color: var(--subtle);
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.path-count {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--ink);
+  background: #eef2ff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #c7d2fe;
 }
 
 .path-table table {
@@ -249,9 +268,6 @@ body {
   font-weight: 600;
 }
 
-.path-table tbody tr:last-child td {
-  border-bottom: none;
-}
 
 .card {
   background: #ffffff;
@@ -367,6 +383,15 @@ li {
 .helper-text {
   font-size: 13px;
   color: var(--subtle);
+}
+
+.error-inline {
+  font-size: 12px;
+  color: #b42318;
+  background: #fff7f6;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #f5c2bd;
 }
 
 textarea {

@@ -152,23 +152,6 @@ def seed_sample() -> None:
             )
 
 
-def load_graph() -> nx.DiGraph:
-    database.connect(reuse_if_open=True)
-    graph = nx.DiGraph()
-    try:
-        for node in NodeModel.select():
-            data = json.loads(node.data_json)
-            node_id = data["id"]
-            graph.add_node(node_id, **data)
-        for edge in EdgeModel.select():
-            data = json.loads(edge.data_json)
-            graph.add_edge(edge.source_id, edge.target_id, **data)
-    finally:
-        if not database.is_closed():
-            database.close()
-    return graph
-
-
 def save_graph(graph: GraphData, db_path: Path | str = DB_PATH) -> None:
     with sqlite_db_connection(db_path, [NodeModel, EdgeModel,ContainsModel]) as db:
         with db.atomic():

@@ -11,9 +11,9 @@ import { AttackPathService } from '../../services/attack-path.service';
 export class AttackInputsPanelComponent {
   constructor(public readonly service: AttackPathService) {}
 
-  ensureTacticsLoaded(): void {
-    if (this.service.mitreTactics.length === 0) {
-      void this.service.loadTactics();
+  ensureScenariosLoaded(): void {
+    if (this.service.attackScenarios.length === 0) {
+      void this.service.loadAttackScenarios();
     }
   }
 
@@ -21,12 +21,8 @@ export class AttackInputsPanelComponent {
     this.service.setEntryPoint(value);
   }
 
-  onAttackTacticChange(value: string): void {
-    this.service.setAttackTactic(value);
-  }
-
-  onAttackTechniqueChange(value: string): void {
-    this.service.setAttackTechnique(value);
+  onAttackScenarioChange(value: string): void {
+    this.service.setAttackScenarioId(value);
   }
 
   onAttackDataChange(value: string): void {

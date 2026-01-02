@@ -9,6 +9,7 @@ services:
       - ./backend/src:/app/src
       - ./data/uploads:/app/data/uploads
       - ./data/mitre_attack.db:/app/data/mitre_attack.db:ro
+      - ./data/attack_scenario.db:/app/data/attack_scenario.db:ro
     environment:
       - FRONTEND_ORIGIN=http://localhost:5173,http://localhost:4200
       - PYTHONPATH=/app/src

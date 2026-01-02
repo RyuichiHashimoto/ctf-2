@@ -7,14 +7,16 @@ import tempfile
 import uuid
 import shutil
 from pathlib import Path
-from typing import Any, dict
+from typing import Any
 
-from fastapi import APIRouter, Body, File, HTTPException, Query, Request, UploadFile
+from fastapi import APIRouter, Body, File, HTTPException, UploadFile
 
-from .api import graph_payload, predict_paths, predict_paths_from_payload
-from .schema import load_graph_from_json_path, parse_graph_payload, validate_graph
+from .api import predict_paths_with_risk
+from .filter import derive_path_filters_from_obtained_data
+from libs.attack_scenario import fetch_scenario_steps
+from .schema import load_graph_from_json_path, validate_graph
 from .storage import (
-    load_graph,
+    UPLOAD_DIR,
     load_uploaded_graph_payload,
     record_upload,
     save_graph,
@@ -24,16 +26,6 @@ from .storage import (
 
 router = APIRouter()
 logger = logging.getLogger("uvicorn.error")
-
-
-@router.get("/graph")
-def get_graph(request: Request) -> dict[str, Any]:
-    """永続化されたグラフを取得して返す。"""
-    graph = load_graph()
-    response = graph_payload(graph)
-    logger.info("GET /graph response=%s", response)
-    return response
-
 
 @router.post("/graph/upload")
 async def upload_graph(file: UploadFile = File(...)) -> dict[str, Any]:
@@ -89,7 +81,6 @@ async def upload_graph(file: UploadFile = File(...)) -> dict[str, Any]:
         "message": "Upload successful",
     }
     logger.info("POST /graph/upload response=%s", response)
-    logger.debug("POST /graph/upload response=%s", response)
     return response
 
 
@@ -98,20 +89,20 @@ def get_uploaded_graph(file_id: str) -> dict[str, Any]:
     """保存済みグラフJSONを読み込み、正規化した結果を返す。"""
     try:
         payload = load_uploaded_graph_payload(file_id)
-        if not payload:
-            raise HTTPException(status_code=404, detail="File not found")
     except HTTPException:
         raise
     except Exception:
         logger.error("graph.uploads read error file_id=%s", file_id)
         raise HTTPException(status_code=400, detail="Invalid stored JSON")
+    
     try:
-        validate_graph(parse_graph_payload(payload.graph))
+        validate_graph(payload)
     except ValueError as exc:
-        logger.error("graph.uploads validate error file_id=%s detail=%s", file_id, exc)
+        logger.error("graph.upload validate error file_id=%s detail=%s", file_id, exc)
         raise HTTPException(status_code=400, detail=str(exc))
-    response = {"file_id": payload.file_id, "graph": payload.graph}
-    logger.debug("GET /graph/uploads/%s response=%s", file_id, response)
+    
+    response = {"graph": payload.asdict()}
+    logger.info("GET /graph/upload/%s response=%s", file_id, response)
     return response
 
 
@@ -132,45 +123,67 @@ def clear_uploaded_graphs() -> dict[str, Any]:
     return response
 
 
-@router.get("/predict")
-def get_predicted_paths(
-    request: Request,
-    start: str = Query(..., description="Starting node id"),
-    target: str | None = Query(None, description="Target node id"),
-    max_len: int = Query(6, ge=2, le=10)
-) -> dict[str, Any]:
-    """保存済みグラフに対して経路予測を実行して返す。"""
-    client = request.client.host if request.client else "unknown"
-    logger.info(
-        "GET /predict from %s start=%s target=%s max_len=%s",
-        client,
-        start,
-        target,
-        max_len
-    )
-    graph = load_graph()
-    response = predict_paths(graph, start=start, target=target, max_len=max_len)
-    logger.info("GET /predict response=%s", response)
-    return response
-
 
 @router.post("/predict/paths")
 def predict_paths_from_request(payload: dict[str, Any] = Body(...)) -> dict[str, Any]:
     """ペイロードで渡されたグラフに対して経路予測を行う。"""
-    start = payload.get("start")
-    technique_filter = payload.get("technique")
-    feature_filter = payload.get("feature")
-    max_len = int(payload.get("max_len", 8))
-    graph_payload_data = payload.get("graph") or {}
+    netowork_configuration_file_id = payload.get("netowork_configuration_file_id")    
+    start = payload.get("start_node") # 
+    max_len = 8
+    next_nodes = payload.get("next_nodes")
+    via_nodes = payload.get("via_nodes")
+    target_nodes = payload.get("target_nodes")
+    scenario_id = payload.get("scenario_id")
+    attacker_obtained_data = payload.get("attacker_obtained_data") or payload.get("attack_data")
+
     if not start:
-        logger.info("POST /predict/paths payload=%s response=empty_start", payload)
+        logger.error("POST /predict/paths payload=%s response=empty_start", payload)
         return {"paths": []}
-    response = predict_paths_from_payload(
-        graph_payload_data=graph_payload_data,
-        start=start,
-        technique_filter=technique_filter,
-        feature_filter=feature_filter,
-        max_len=max_len
+    if not netowork_configuration_file_id:
+        logger.error("POST /predict/paths payload=%s response=empty_file_id", payload)
+        return {"paths": []}
+    
+    next_nodes = next_nodes if next_nodes else set()
+    via_nodes = via_nodes if via_nodes else set()
+    target_nodes = target_nodes if target_nodes else set()
+        
+    try:
+        uploadedgraph = load_uploaded_graph_payload(netowork_configuration_file_id)
+    except FileNotFoundError:
+        logger.error("predict.paths load error file_id=%s", netowork_configuration_file_id)
+        raise HTTPException(status_code=404, detail="File not found")
+    except Exception:
+        logger.error("predict.paths load error file_id=%s", netowork_configuration_file_id)
+        raise HTTPException(status_code=400, detail="Invalid stored JSON")
+
+    attack_scenario = None
+    if scenario_id is not None:
+        try:
+            scenario_id_int = int(scenario_id)
+        except (TypeError, ValueError):
+            logger.error("predict.paths invalid scenario_id=%s", scenario_id)
+            scenario_id_int = None
+        if scenario_id_int is not None:
+            attack_scenario = fetch_scenario_steps(scenario_id_int)    
+    
+
+    if attacker_obtained_data is not None:
+        derived_next_nodes, derived_via_nodes, derived_target_nodes = derive_path_filters_from_obtained_data(
+            uploadedgraph,
+            attacker_obtained_data,
+        )
+        next_nodes = next_nodes.union(derived_next_nodes)
+        via_nodes = via_nodes.union(derived_via_nodes)
+        target_nodes = target_nodes.union(derived_target_nodes)
+
+    response = predict_paths_with_risk(
+        graph_payload_data=uploadedgraph,
+        start_node=start,
+        attack_scenario=attack_scenario,
+        max_nodes=max_len,
+        next_nodes=next_nodes,
+        via_nodes=via_nodes,
+        target_nodes=target_nodes,
     )
     if not response.get("paths"):
         logger.info("POST /predict/paths payload=%s response=start_not_found", payload)

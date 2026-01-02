@@ -18,33 +18,20 @@
     </option>
   </select>
 
-  <label class="field-label prominent" for="attack-tactic">Attack Tactic</label>
+  <label class="field-label prominent" for="attack-scenario">Attack Scenario</label>
   <select
-    id="attack-tactic"
-    [ngModel]="service.attackTactic"
-    (focus)="ensureTacticsLoaded()"
-    (ngModelChange)="onAttackTacticChange($event)"
+    id="attack-scenario"
+    [ngModel]="service.attackScenarioId"
+    (focus)="ensureScenariosLoaded()"
+    (ngModelChange)="onAttackScenarioChange($event)"
   >
-    <option value="">Select tactic</option>
-    <option *ngFor="let tactic of service.mitreTactics" [value]="tactic.shortname">
-      {{ tactic.name }}
+    <option value="">Select scenario</option>
+    <option *ngFor="let scenario of service.attackScenarios" [value]="scenario.id">
+      {{ scenario.name }}
     </option>
   </select>
 
-  <label class="field-label prominent" for="attack-technique">Attack Technique</label>
-  <select
-    id="attack-technique"
-    [disabled]="!service.attackTactic"
-    [ngModel]="service.attackTechnique"
-    (ngModelChange)="onAttackTechniqueChange($event)"
-  >
-    <option value="">Select technique</option>
-    <option *ngFor="let technique of service.mitreTechniques" [value]="technique.technique_id">
-      {{ technique.name }} ({{ technique.technique_id }})
-    </option>
-  </select>
-
-  <label class="field-label prominent" for="attack-data">Attack Acquired Data</label>
+  <label class="field-label prominent" for="attack-data">Attacker Obtained Data</label>
   <select
     id="attack-data"
     [ngModel]="service.attackData"
@@ -53,4 +40,8 @@
     <option value="">Select Data</option>
     <option value="Asset Locations (File Server)">Asset Locations (File Server)</option>
   </select>
+
+  <div class="error-inline" *ngIf="service.predictError">
+    {{ service.predictError }}
+  </div>
 </div>

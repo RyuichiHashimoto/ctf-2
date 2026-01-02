@@ -12,7 +12,7 @@ import { AttackPathService } from './services/attack-path.service';
 })
 export class App {
   constructor(public readonly service: AttackPathService) {
-    this.service.loadTactics();
-    this.service.connectWebSocket();
+    this.service.loadAttackScenarios();
+    // this.service.connectWebSocket();
   }
 }

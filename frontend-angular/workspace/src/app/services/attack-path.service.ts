@@ -49,25 +49,23 @@ export class AttackPathService {
   predictError = '';
 
   attackData = '';
-  attackTactic = '';
-  attackTechnique = '';
+  attackScenarioId = '';
 
-  mitreTactics: { tactic_id: string; name: string; shortname: string }[] = [];
-  mitreTechniques: { technique_id: string; name: string }[] = [];
+  attackScenarios: { id: number; name: string }[] = [];
   uploadedGraphs: { file_id: string; filename: string }[] = [];
   selectedUploadId = '';
   uploadStatus = '';
   isUploading = false;
 
   detectionAlert: { device_id?: string; event?: string; detail?: string } | null = null;
-  wsConnected = false;
+  // wsConnected = false;
   isDebugMode = true;
 
-  readonly riskThreshold = 0.05;
+  readonly riskThreshold = 0.21;
 
-  private ws: WebSocket | null = null;
+  // private ws: WebSocket | null = null;
   private readonly apiBase = (window as any).VITE_API_BASE || 'http://localhost:8000';
-  private readonly wsBase = (window as any).VITE_WS_BASE || 'ws://localhost:8000';
+  // private readonly wsBase = (window as any).VITE_WS_BASE || 'ws://localhost:8000';
 
   constructor(
     private zone: NgZone,
@@ -113,43 +111,43 @@ export class AttackPathService {
     this.isDebugMode = !this.isDebugMode;
   }
 
-  connectWebSocket(): void {
-    if (this.ws) {
-      return;
-    }
-    this.ws = new WebSocket(`${this.wsBase}/ws/detection`);
-    this.ws.onopen = () => {
-      this.zone.run(() => {
-        this.wsConnected = true;
-      });
-    };
-    this.ws.onmessage = (event) => {
-      try {
-        const payload = JSON.parse(event.data);
-        this.zone.run(() => {
-          this.detectionAlert = payload;
-        });
-      } catch {
-        this.zone.run(() => {
-          this.detectionAlert = {
-            device_id: 'unknown',
-            event: 'detection',
-            detail: 'Invalid websocket payload'
-          };
-        });
-      }
-    };
-    this.ws.onclose = () => {
-      this.zone.run(() => {
-        this.wsConnected = false;
-      });
-    };
-    this.ws.onerror = () => {
-      this.zone.run(() => {
-        this.wsConnected = false;
-      });
-    };
-  }
+  // connectWebSocket(): void {
+  //   if (this.ws) {
+  //     return;
+  //   }
+  //   this.ws = new WebSocket(`${this.wsBase}/ws/detection`);
+  //   this.ws.onopen = () => {
+  //     this.zone.run(() => {
+  //       this.wsConnected = true;
+  //     });
+  //   };
+  //   this.ws.onmessage = (event) => {
+  //     try {
+  //       const payload = JSON.parse(event.data);
+  //       this.zone.run(() => {
+  //         this.detectionAlert = payload;
+  //       });
+  //     } catch {
+  //       this.zone.run(() => {
+  //         this.detectionAlert = {
+  //           device_id: 'unknown',
+  //           event: 'detection',
+  //           detail: 'Invalid websocket payload'
+  //         };
+  //       });
+  //     }
+  //   };
+  //   this.ws.onclose = () => {
+  //     this.zone.run(() => {
+  //       this.wsConnected = false;
+  //     });
+  //   };
+  //   this.ws.onerror = () => {
+  //     this.zone.run(() => {
+  //       this.wsConnected = false;
+  //     });
+  //   };
+  // }
 
   closeAlert(): void {
     if (this.detectionAlert?.device_id) {
@@ -172,14 +170,8 @@ export class AttackPathService {
     this.fetchPredictedPaths();
   }
 
-  setAttackTactic(value: string): void {
-    this.attackTactic = value;
-    this.attackTechnique = '';
-    this.loadTechniques();
-  }
-
-  setAttackTechnique(value: string): void {
-    this.attackTechnique = value;
+  setAttackScenarioId(value: string): void {
+    this.attackScenarioId = value;
     this.fetchPredictedPaths();
   }
 
@@ -194,8 +186,7 @@ export class AttackPathService {
 
   clearAttackInputs(): void {
     this.entryPoint$.next('');
-    this.attackTactic = '';
-    this.attackTechnique = '';
+    this.attackScenarioId = '';
     this.attackData = '';
     this.selectedPath$.next(null);
     this.predictedPaths$.next([]);
@@ -227,14 +218,30 @@ export class AttackPathService {
     }
     try {
       const data = await firstValueFrom(
-        this.http.get<{ graph?: GraphData }>(`${this.apiBase}/graph/uploads/${fileId}`)
+        this.http.get<{ graph?: any }>(`${this.apiBase}/graph/upload/${fileId}`)
       );
       if (!data.graph) {
         throw new Error('Invalid graph payload');
       }
+      const normalizedGraph: GraphData = {
+        nodes: (data.graph.nodes || []).map((node: any) => ({
+          id: String(node.id),
+          label: node.label || node.id,
+          type: typeof node.type === 'string' ? node.type : node.type?.value || 'unknown',
+          techniques: node.techniques || [],
+          features: node.features || []
+        })),
+        edges: (data.graph.edges || []).map((edge: any) => ({
+          id: String(edge.id || `${edge.source}->${edge.target}`),
+          source: String(edge.source),
+          target: String(edge.target),
+          prob: Number(edge.prob ?? edge.risk ?? 0.1),
+          technique: edge.technique || ''
+        }))
+      };
       this.zone.run(() => {
         this.selectedUploadId = fileId;
-        this.graphData$.next(data.graph || null);
+        this.graphData$.next(normalizedGraph);
         this.graphError = '';
       });
       this.fetchPredictedPaths();
@@ -318,37 +325,20 @@ export class AttackPathService {
     }
   }
 
-  async loadTactics(): Promise<void> {
+  async loadAttackScenarios(): Promise<void> {
     try {
       const data = await firstValueFrom(
-        this.http.get<{ tactics?: { tactic_id: string; name: string; shortname: string }[] }>(
-          `${this.apiBase}/mitre/tactics`
+        this.http.get<{ scenarios?: { id: number; name: string }[] }>(
+          `${this.apiBase}/scenarios`
         )
       );
       this.zone.run(() => {
-        this.mitreTactics = data.tactics || [];
+        this.attackScenarios = data.scenarios || [];
       });
     } catch {
       this.zone.run(() => {
-        this.mitreTactics = [];
+        this.attackScenarios = [];
       });
-    }
-  }
-
-  async loadTechniques(): Promise<void> {
-    if (!this.attackTactic) {
-      this.mitreTechniques = [];
-      return;
-    }
-    try {
-      const data = await firstValueFrom(
-        this.http.get<{ techniques?: { technique_id: string; name: string }[] }>(
-          `${this.apiBase}/mitre/techniques?tactic=${encodeURIComponent(this.attackTactic)}`
-        )
-      );
-      this.mitreTechniques = data.techniques || [];
-    } catch {
-      this.mitreTechniques = [];
     }
   }
 
@@ -362,11 +352,11 @@ export class AttackPathService {
     try {
       const data = await firstValueFrom(
         this.http.post<{ paths?: PredictedPath[] }>(`${this.apiBase}/predict/paths`, {
-          start: this.entryPoint,
+          netowork_configuration_file_id: this.selectedUploadId || null,
+          start_node: this.entryPoint,
           max_len: 8,
-          technique: this.attackTechnique || null,
-          feature: this.attackData || null,
-          graph: this.graphData
+          scenario_id: this.attackScenarioId ? Number(this.attackScenarioId) : null,
+          attacker_obtained_data: this.attackData || null,
         })
       );
       this.zone.run(() => {

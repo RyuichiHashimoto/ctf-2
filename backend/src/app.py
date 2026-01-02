@@ -6,6 +6,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from libs.attack_graph_lib import api_router as graph_router, init_db
+from libs.attack_scenario import router as attack_scenario_router
 from libs.mitre import router as mitre_router
 from libs.recieve_detection import router as receive_detection_router
 
@@ -39,5 +40,6 @@ def on_startup() -> None:
 
 
 app.include_router(graph_router)
+app.include_router(attack_scenario_router)
 app.include_router(mitre_router)
 app.include_router(receive_detection_router)

@@ -17,13 +17,16 @@ cytoscape.use(dagre);
 @Component({
   selector: 'app-cytoscape-view',
   imports: [CommonModule, AttackPathTableComponent],
-  templateUrl: './cytoscape-view.component.html'
+  templateUrl: './cytoscape-view.component.html',
+  styleUrls: ['./cytoscape-view.component.css']
 })
 export class CytoscapeViewComponent implements AfterViewInit, OnDestroy {
   @ViewChild('cyContainer') cyContainer?: ElementRef<HTMLDivElement>;
   private cyRef: Core | null = null;
   private subscription?: Subscription;
   private pendingRender = false;
+  private readonly minPaneHeight = 420;
+  private readonly maxPaneHeight = 820;
 
   constructor(public readonly service: AttackPathService) {}
 
@@ -62,12 +65,12 @@ export class CytoscapeViewComponent implements AfterViewInit, OnDestroy {
     }
 
     const nodeColors: Record<string, string> = {
-      entry: '#2563eb',
-      tactic: '#7c3aed',
-      pivot: '#0f766e',
-      asset: '#f59e0b',
-      goal: '#dc2626',
-      unknown: '#64748b'
+      entry: this.getCssVar('--cy-node-entry', '#2563eb'),
+      tactic: this.getCssVar('--cy-node-tactic', '#7c3aed'),
+      pivot: this.getCssVar('--cy-node-pivot', '#0f766e'),
+      asset: this.getCssVar('--cy-node-asset', '#f59e0b'),
+      goal: this.getCssVar('--cy-node-goal', '#dc2626'),
+      unknown: this.getCssVar('--cy-node-unknown', '#64748b')
     };
 
     const iconForType = (type: string | undefined, color: string) => {
@@ -176,6 +179,9 @@ export class CytoscapeViewComponent implements AfterViewInit, OnDestroy {
       }
     ];
 
+    const nodesCount = this.service.graphData.nodes?.length ?? 0;
+    this.applyPaneHeight(nodesCount);
+
     if (!this.cyRef) {
       this.cyRef = cytoscape({
         container: this.cyContainer.nativeElement,
@@ -196,6 +202,20 @@ export class CytoscapeViewComponent implements AfterViewInit, OnDestroy {
     this.cyRef.layout(layoutOptions).run();
   }
 
+  private applyPaneHeight(nodesCount: number): void {
+    const container = this.cyContainer?.nativeElement;
+    if (!container) {
+      return;
+    }
+    const panel = container.closest('.cy-shell') as HTMLElement | null;
+    if (!panel) {
+      return;
+    }
+    const target = Math.min(this.maxPaneHeight, this.minPaneHeight + nodesCount * 6);
+    panel.style.maxHeight = `${target}px`;
+    panel.style.overflow = target >= this.maxPaneHeight ? 'auto' : 'hidden';
+  }
+
   private updateHighlights(): void {
     if (!this.cyRef || !this.service.graphData) {
       return;
@@ -203,14 +223,18 @@ export class CytoscapeViewComponent implements AfterViewInit, OnDestroy {
     const cy = this.cyRef;
     cy.elements().removeClass('highlighted highlighted-start');
 
-    const pathsToHighlight = this.service.predictedPaths$.value.map((item) => item.nodes);
+    const highlightThreshold = 0.21;
+    const predictedPaths = this.service.predictedPaths$.value;
+    const pathsToHighlight = predictedPaths
+      .filter((item) => Number(item.risk ?? 0) > highlightThreshold)
+      .map((item) => item.nodes);
     const selected = this.service.selectedPath$.value;
 
     if (selected?.length) {
-      const match = this.service.predictedPaths$.value.find((item) =>
+      const match = predictedPaths.find((item) =>
         item.nodes.length === selected.length && item.nodes.every((v, i) => v === selected[i])
       );
-      if (match) {
+      if (match && Number(match.risk ?? 0) > highlightThreshold) {
         this.applyPathHighlight(selected);
       }
     } else {
@@ -255,5 +279,25 @@ export class CytoscapeViewComponent implements AfterViewInit, OnDestroy {
       const norm = maxRisk > 0 ? sum / maxRisk : 0;
       edge.data('riskNorm', norm);
     });
+  }
+
+  private getCssVar(name: string, fallback: string): string {
+    const container = this.cyContainer?.nativeElement;
+    if (!container) {
+      return fallback;
+    }
+    const host = container.closest('app-cytoscape-view') as HTMLElement | null;
+    const hostValue = host
+      ? getComputedStyle(host).getPropertyValue(name).trim()
+      : '';
+    if (hostValue) {
+      return hostValue;
+    }
+    const containerValue = getComputedStyle(container).getPropertyValue(name).trim();
+    if (containerValue) {
+      return containerValue;
+    }
+    const rootValue = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return rootValue || fallback;
   }
 }

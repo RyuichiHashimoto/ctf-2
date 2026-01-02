@@ -2,10 +2,12 @@
   <header class="app-header">
     <h1>Attack Path Visualizer</h1>
     <div class="header-controls">
+      <!--
       <div class="ws-status" *ngIf="service.isDebugMode">
         <span class="ws-dot" [class.ok]="service.wsConnected" [class.bad]="!service.wsConnected"></span>
         {{ service.wsConnected ? 'connected' : 'disconnected' }}
       </div>
+      -->
       <button type="button" class="mode-button" (click)="service.toggleMode()">
         {{ service.isDebugMode ? 'Debug Mode' : 'Production Mode' }}
       </button>
