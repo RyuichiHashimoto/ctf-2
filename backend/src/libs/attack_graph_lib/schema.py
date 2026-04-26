@@ -166,8 +166,8 @@ def validate_graph(graph: GraphData) -> None:
         errors.append(f"edge references missing nodes: {', '.join(missing_edge_nodes)}")
 
     missing_contain_nodes = sorted(
-        {contain.source for contain in graph.contains if contain.source not in node_id_set}
-        | {contain.target for contain in graph.contains if contain.target not in node_id_set}
+        {contain.parent for contain in graph.contains if contain.parent not in node_id_set}
+        | {contain.child for contain in graph.contains if contain.child not in node_id_set}
     )
     if missing_contain_nodes:
         errors.append(f"contain references missing nodes: {', '.join(missing_contain_nodes)}")

@@ -2,7 +2,8 @@
 
 from .schema import GraphData, GraphEdge, GraphContain, GraphNode, load_graph_from_json_path, parse_graph_payload, validate_graph
 from .storage import EdgeModel, NodeModel, database, init_db
-from .routes import router as api_router
+from .prediction import build_graph_from_data, predict_paths_with_risk, score_path
+from .preprocessing import normalize_graph
 
 __all__ = [
     "GraphData",
@@ -16,5 +17,8 @@ __all__ = [
     "NodeModel",
     "database",
     "init_db",
-    "api_router",
+    "build_graph_from_data",
+    "normalize_graph",
+    "predict_paths_with_risk",
+    "score_path",
 ]
