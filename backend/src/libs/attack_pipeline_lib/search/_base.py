@@ -1,22 +1,22 @@
-"""全経路探索アルゴリズム。"""
+"""経路探索アルゴリズムの基底クラス。"""
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from typing import Any
 
-from libs.attack_graph_lib.prediction import predict_paths_with_risk
 from libs.attack_graph_lib.schema import GraphData
 
-from ._base import PathSearcher
 
+class PathSearcher(ABC):
+    """経路探索アルゴリズムの基底クラス。
 
-class ExhaustiveSearcher(PathSearcher):
-    """既存の全経路探索を PathSearcher インターフェースでラップした実装。
-
-    ``attack_graph_lib.prediction.predict_paths_with_risk`` を呼び出し、
-    ``PathSearcher`` プロトコルに準拠したインターフェースを提供する。
+    新しいアルゴリズムを実装する場合は、このクラスを継承して
+    ``search()`` を実装する。未実装のままインスタンス化しようとすると
+    ``TypeError`` が発生する。
     """
 
+    @abstractmethod
     def search(
         self,
         graph: GraphData,
@@ -46,11 +46,3 @@ class ExhaustiveSearcher(PathSearcher):
         list of dict
             発見した攻撃経路のリスト。各要素は経路ノード列とリスクスコアを含む辞書。
         """
-        prediction = predict_paths_with_risk(
-            graph_payload_data=graph,
-            start_node=start_node,
-            attack_scenario=attack_scenario,
-            max_nodes=max_nodes,
-            target_nodes=target_nodes,
-        )
-        return prediction.get("paths", [])
