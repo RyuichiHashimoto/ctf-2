@@ -115,7 +115,7 @@ def load_graph_from_json_path(path: Path | str) -> GraphData:
 
 def parse_graph_payload(payload: dict[str, Any]) -> GraphData:
     """payloadをGraphDataへ変換する。"""
-    graph = payload.get("graph") or payload
+    graph = payload.get("graph") or payload.get("system") or payload
     nodes_raw = graph.get("node") or graph.get("nodes") or []
     edges_raw = graph.get("edge") or graph.get("edges") or []
     contains_raw = graph.get("contains") or []

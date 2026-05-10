@@ -2,147 +2,122 @@
 
 from __future__ import annotations
 
+import logging
+
 from libs.attack_graph_lib.postprocessing import postprocess_prediction
-from libs.attack_graph_lib.prediction import predict_paths_with_risk
 from libs.attack_graph_lib.schema import GraphData, NodeType, asset_node_ids
 
-from .augmentation import augment_graph
-from .metrics import MetricsCollector
-from .preprocessing import integrate_context
-from .schema import PipelineInput, PipelineResult
-from .storage import save_pipeline_result
+from .graph.augmentation import augment_graph
+from .graph.preprocessing import integrate_context
+from .metrics.collector import MetricsCollector
+from .metrics.storage import save_pipeline_result
+from .models.schema import PipelineInput, PipelineResult
+from .search import ExhaustiveSearcher, PathSearcher
+
+logger = logging.getLogger("uvicorn.error")
 
 
-def run_pipeline(input_data: PipelineInput) -> PipelineResult:
+def run_pipeline(
+    input_data: PipelineInput,
+    searcher: PathSearcher | None = None,
+) -> PipelineResult:
     """攻撃経路予測パイプラインを実行する。
 
-    グラフ補完、脆弱性・脅威情報の統合、経路探索、後処理、メトリクス収集を
-    順番に実行する。脅威情報に開始・終了ノードが含まれる場合はそれを使い、
-    未指定の場合は entry ノードから asset ノードへの経路を探索する。
+    グラフ補完、脆弱性情報の統合、経路探索、後処理、メトリクス収集を
+    順番に実行する。``start_nodes`` / ``target_nodes`` が指定されている場合は
+    それを使い、未指定の場合は entry ノードから asset ノードへの経路を探索する。
 
-    Args:
-        input_data: システム構成、脆弱性、脅威、設定を含む入力。
+    Parameters
+    ----------
+    input_data : PipelineInput
+        システム構成、脆弱性、設定を含む入力。
+    searcher : PathSearcher, optional
+        経路探索アルゴリズム。未指定の場合は ``ExhaustiveSearcher`` を使う。
 
-    Returns:
+    Returns
+    -------
+    PipelineResult
         予測経路、メトリクス、前処理済みグラフを含む結果。
     """
-    # メトリクス収集器を初期化する。
-    metrics = MetricsCollector()
+    # 1. 経路探索アルゴリズムを決定する。
+    # テストや実験では searcher を差し替えられるようにし、通常実行では全探索を使う。
+    if searcher is None:
+        searcher = ExhaustiveSearcher()
 
-    # 入力時点のグラフ規模を記録する。
+    # 2. メトリクス収集を開始し、入力時点のグラフ規模を記録する。
+    metrics = MetricsCollector()
     metrics.record_graph("input", input_data.system)
 
-    # 設定に従って、実験用のグラフ補完を実行する。
+    # 3. 設定に従ってグラフを補完する。
+    # ここでは不足しているノードやエッジを実験設定に応じて追加する。
+    logger.info("pipeline step=augment mode=%s", input_data.config.augmentation_mode)
     augmented_graph = augment_graph(input_data.system, input_data.config)
-
-    # 補完後のグラフ規模を記録する。
     metrics.record_graph("augmented", augmented_graph)
+    logger.info("pipeline step=augment done nodes=%d edges=%d", len(augmented_graph.nodes), len(augmented_graph.edges))
 
-    # 脆弱性・脅威情報をグラフへ統合し、攻撃シナリオ候補を導出する。
-    prepared_graph, derived_attack_scenario = integrate_context(
-        augmented_graph,
-        input_data.vulnerabilities,
-        input_data.threats,
-    )
-
-    # 前処理後のグラフ規模を記録する。
+    # 4. 脆弱性情報をグラフへ統合する。
+    logger.info("pipeline step=integrate_context vulns=%d", len(input_data.vulnerabilities))
+    prepared_graph = integrate_context(augmented_graph, input_data.vulnerabilities)
     metrics.record_graph("prepared", prepared_graph)
+    logger.info("pipeline step=integrate_context done nodes=%d edges=%d", len(prepared_graph.nodes), len(prepared_graph.edges))
 
-    # 脅威情報に開始ノードがあれば利用し、なければ既定の開始ノードを選ぶ。
-    start_nodes = _threat_starts(input_data) or _default_start_nodes(prepared_graph)
+    # 5. 探索の開始ノード・終了ノードを決定する。
+    # 入力で明示されていればそれを優先し、未指定なら entry から asset を狙う。
+    start_nodes = set(input_data.start_nodes) or _default_start_nodes(prepared_graph)
+    target_nodes = set(input_data.target_nodes) or set(asset_node_ids(prepared_graph))
 
-    # 脅威情報に終了ノードがあれば利用し、なければ asset ノードを終了候補にする。
-    target_nodes = _threat_targets(input_data) or set(asset_node_ids(prepared_graph))
-
-    # 脅威情報から導出した technique 列を、経路スコアリング用シナリオとして使う。
-    attack_scenario = derived_attack_scenario or None
-
-    # 探索に使う開始・終了ノード数を記録する。
+    # 6. 探索条件をメトリクスへ記録する。
     metrics.set("start_node_count", len(start_nodes))
     metrics.set("target_node_count", len(target_nodes))
+    logger.info("pipeline step=search start=%s target_count=%d max_nodes=%d", start_nodes, len(target_nodes), input_data.config.max_nodes)
 
-    # 開始または終了ノードが得られない場合は、空結果として終了する。
+    # 7. 開始または終了候補がない場合は探索できないため、空結果として返す。
     if not start_nodes or not target_nodes:
+        logger.warning("pipeline step=search skipped: start_nodes=%s target_nodes=%s", start_nodes, target_nodes)
         result = PipelineResult(paths=[], metrics=metrics.snapshot(), graph=prepared_graph)
         _save_if_requested(input_data, result)
         return result
 
-    # 各開始ノードから終了ノード群への攻撃経路候補を集約する。
-    all_paths = []
+    # 8. 各開始ノードから終了候補への攻撃経路を探索し、候補を集約する。
+    all_paths: list[dict] = []
     for start_node in start_nodes:
-        # 低レベルのグラフ探索・リスク計算を実行する。
-        prediction = predict_paths_with_risk(
-            graph_payload_data=prepared_graph,
+        paths = searcher.search(
+            graph=prepared_graph,
             start_node=start_node,
-            attack_scenario=attack_scenario,
-            max_nodes=input_data.config.max_nodes,
             target_nodes=target_nodes,
+            attack_scenario=None,
+            max_nodes=input_data.config.max_nodes,
         )
+        logger.info("pipeline step=search start_node=%s found=%d", start_node, len(paths))
+        all_paths.extend(paths)
 
-        # 開始ノードごとの予測結果を全体の候補リストへ追加する。
-        all_paths.extend(prediction.get("paths", []))
-
-    # リスクが高い経路を優先するため、降順に並べる。
+    # 9. リスク順に並べ、重複除去や top-k 制限などの後処理を適用する。
     all_paths.sort(key=lambda item: item["risk"], reverse=True)
-
-    # 重複除去や top-k 制限など、グラフ単体の後処理を適用する。
     postprocessed = postprocess_prediction({"paths": all_paths}, limit=input_data.config.top_k)
-
-    # 後処理後に残った経路数を記録する。
     metrics.set("path_count", len(postprocessed["paths"]))
+    logger.info("pipeline step=postprocess total=%d after_topk=%d", len(all_paths), len(postprocessed["paths"]))
 
-    # 呼び出し元へ返す結果オブジェクトを作成する。
+    # 10. 最終結果を組み立て、実験IDがある場合は保存して返す。
     result = PipelineResult(
         paths=postprocessed["paths"],
         metrics=metrics.snapshot(),
         graph=prepared_graph,
     )
-
-    # 実験IDが指定されている場合は、結果をファイルへ保存する。
     _save_if_requested(input_data, result)
-
-    # 最終結果を返す。
     return result
-
-
-def _threat_starts(input_data: PipelineInput) -> set[str]:
-    """脅威情報から開始ノードを収集する。
-
-    Args:
-        input_data: パイプライン入力。
-
-    Returns:
-        脅威情報に明示された開始ノードIDの集合。
-    """
-    starts: set[str] = set()
-    for threat in input_data.threats:
-        if threat.start_node:
-            starts.add(threat.start_node)
-    return starts
-
-
-def _threat_targets(input_data: PipelineInput) -> set[str]:
-    """脅威情報から終了ノードを収集する。
-
-    Args:
-        input_data: パイプライン入力。
-
-    Returns:
-        脅威情報に明示された終了ノードIDの集合。
-    """
-    targets: set[str] = set()
-    for threat in input_data.threats:
-        targets.update(threat.target_nodes)
-    return targets
 
 
 def _default_start_nodes(graph: GraphData) -> set[str]:
     """既定の開始ノードを選択する。
 
-    Args:
-        graph: 対象グラフ。
+    Parameters
+    ----------
+    graph : GraphData
+        対象グラフ。
 
-    Returns:
+    Returns
+    -------
+    set of str
         entry ノードがあればそのID集合。entry ノードがなければ asset 以外の
         ノードID集合。
     """
@@ -156,9 +131,12 @@ def _default_start_nodes(graph: GraphData) -> set[str]:
 def _save_if_requested(input_data: PipelineInput, result: PipelineResult) -> None:
     """設定に実験IDがある場合に結果を保存する。
 
-    Args:
-        input_data: パイプライン入力。
-        result: 保存対象の実行結果。
+    Parameters
+    ----------
+    input_data : PipelineInput
+        パイプライン入力。
+    result : PipelineResult
+        保存対象の実行結果。
     """
     if input_data.config.experiment_id:
         save_pipeline_result(input_data.config.experiment_id, result.asdict())

@@ -1,47 +1,65 @@
 <div class="field-group">
-  <div class="field-group-header">
-    <div class="field-group-title">Attack Inputs</div>
-    <button type="button" class="secondary small" (click)="service.clearAttackInputs()">
-      Clear
+  <div class="field-group-title">Experiments</div>
+
+  <label class="field-label prominent" for="algorithm">探索アルゴリズム</label>
+  <select
+    id="algorithm"
+    [ngModel]="service.selectedAlgorithm"
+    (ngModelChange)="onAlgorithmChange($event)"
+  >
+    <option *ngFor="let algo of service.algorithms" [value]="algo.id">
+      {{ algo.label }}
+    </option>
+  </select>
+
+  <ng-container *ngIf="service.selectedAlgorithm === 'exhaustive_specified'">
+    <label class="field-label prominent" for="exp-start-node">開始ノード</label>
+    <select
+      id="exp-start-node"
+      [ngModel]="service.experimentStartNode"
+      (ngModelChange)="service.experimentStartNode = $event"
+    >
+      <option value="">ノードを選択</option>
+      <option *ngFor="let node of service.listNodes" [value]="node.id">
+        {{ node.label }}
+      </option>
+    </select>
+
+    <label class="field-label prominent" for="exp-end-node">終了ノード</label>
+    <select
+      id="exp-end-node"
+      [ngModel]="service.experimentEndNode"
+      (ngModelChange)="service.experimentEndNode = $event"
+    >
+      <option value="">ノードを選択</option>
+      <option *ngFor="let node of service.listNodes" [value]="node.id">
+        {{ node.label }}
+      </option>
+    </select>
+  </ng-container>
+
+  <label class="field-label prominent" for="config-preset">実験設定</label>
+  <select
+    id="config-preset"
+    [ngModel]="service.selectedConfigPreset"
+    (ngModelChange)="service.selectedConfigPreset = $event"
+  >
+    <option *ngFor="let preset of service.configPresets" [value]="preset.id">
+      {{ preset.label }}
+    </option>
+  </select>
+
+  <div class="button-row">
+    <button
+      type="button"
+      (click)="run()"
+      [disabled]="!service.selectedUploadId || service.experimentRunning"
+    >
+      {{ service.experimentRunning ? '実行中...' : 'Run' }}
     </button>
   </div>
 
-  <label class="field-label prominent" for="entry-point">Attacked Node</label>
-  <select
-    id="entry-point"
-    [ngModel]="service.entryPoint"
-    (ngModelChange)="onEntryPointChange($event)"
-  >
-    <option value="">Select node</option>
-    <option *ngFor="let node of service.listNodes" [value]="node.id">
-      {{ node.label }}
-    </option>
-  </select>
-
-  <label class="field-label prominent" for="attack-scenario">Attack Scenario</label>
-  <select
-    id="attack-scenario"
-    [ngModel]="service.attackScenarioId"
-    (focus)="ensureScenariosLoaded()"
-    (ngModelChange)="onAttackScenarioChange($event)"
-  >
-    <option value="">Select scenario</option>
-    <option *ngFor="let scenario of service.attackScenarios" [value]="scenario.id">
-      {{ scenario.name }}
-    </option>
-  </select>
-
-  <label class="field-label prominent" for="attack-data">Attacker Obtained Data</label>
-  <select
-    id="attack-data"
-    [ngModel]="service.attackData"
-    (ngModelChange)="onAttackDataChange($event)"
-  >
-    <option value="">Select Data</option>
-    <option value="Asset Locations (File Server)">Asset Locations (File Server)</option>
-  </select>
-
-  <div class="error-inline" *ngIf="service.predictError">
-    {{ service.predictError }}
+  <div class="error-inline" *ngIf="service.experimentError">
+    {{ service.experimentError }}
   </div>
 </div>

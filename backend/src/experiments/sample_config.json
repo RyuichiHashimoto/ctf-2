@@ -1,0 +1,5 @@
+{
+  "augmentation_mode": "none",
+  "max_nodes": 8,
+  "top_k": 5
+}

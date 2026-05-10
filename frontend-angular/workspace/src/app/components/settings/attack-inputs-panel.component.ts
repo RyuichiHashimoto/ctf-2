@@ -11,21 +11,13 @@ import { AttackPathService } from '../../services/attack-path.service';
 export class AttackInputsPanelComponent {
   constructor(public readonly service: AttackPathService) {}
 
-  ensureScenariosLoaded(): void {
-    if (this.service.attackScenarios.length === 0) {
-      void this.service.loadAttackScenarios();
-    }
+  onAlgorithmChange(value: string): void {
+    this.service.selectedAlgorithm = value;
+    this.service.experimentStartNode = '';
+    this.service.experimentEndNode = '';
   }
 
-  onEntryPointChange(value: string): void {
-    this.service.setEntryPoint(value);
-  }
-
-  onAttackScenarioChange(value: string): void {
-    this.service.setAttackScenarioId(value);
-  }
-
-  onAttackDataChange(value: string): void {
-    this.service.setAttackData(value);
+  run(): void {
+    void this.service.runExperiment();
   }
 }

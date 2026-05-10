@@ -1,46 +1,24 @@
 <div class="field-group">
-  <div class="field-group-title">Load Graph</div>
-  <input
-    #fileInput
-    type="file"
-    accept="application/json"
-    (change)="handleGraphFile($event)"
-    class="file-input"
-  />
-  <ng-container *ngIf="service.isDebugMode">
-    <div class="button-row">
-      <button type="button" class="secondary" (click)="handleLoadGraphClick()">
-        Select configuration file
-      </button>
-    </div>
-    <div class="button-row">
-      <button
-        type="button"
-        (click)="handleUploadClick()"
-        [disabled]="!selectedFile || service.isUploading"
-      >
-        {{ service.isUploading ? 'Uploading...' : 'Upload' }}
-      </button>
-      <button type="button" class="secondary" (click)="service.clearUploadedGraphs()">
-        Clear
-      </button>
-      <div class="helper-text" *ngIf="selectedFileName">{{ selectedFileName }}</div>
-    </div>
-  </ng-container>
-  <div class="helper-text" *ngIf="service.uploadStatus">
-    {{ service.uploadStatus }}
+  <div class="field-group-header">
+    <div class="field-group-title">Graph Selection</div>
+    <button type="button" class="secondary small" (click)="refresh()">Refresh</button>
   </div>
-  <label class="field-label prominent" for="uploaded-graph">
-    Uploaded Graph
-  </label>
+
+  <label class="field-label prominent" for="uploaded-graph">Uploaded Graph</label>
   <select
     id="uploaded-graph"
     [ngModel]="service.selectedUploadId"
     (ngModelChange)="handleUploadSelection($event)"
   >
-    <option value="">Select uploaded file</option>
+    <option value="">グラフを選択してください</option>
     <option *ngFor="let item of service.uploadedGraphs" [value]="item.file_id">
       {{ item.filename }}
     </option>
   </select>
+
+  <div class="helper-text" *ngIf="service.uploadedGraphs.length === 0 && !loadError">
+    アップロード済みのグラフはありません。
+  </div>
+  <div class="error-inline" *ngIf="loadError">{{ loadError }}</div>
+  <div class="helper-text" *ngIf="service.graphError">{{ service.graphError }}</div>
 </div>

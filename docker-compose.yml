@@ -11,19 +11,8 @@ services:
       - ./data/mitre_attack.db:/app/data/mitre_attack.db:ro
       - ./data/attack_scenario.db:/app/data/attack_scenario.db:ro
     environment:
-      - FRONTEND_ORIGIN=http://localhost:5173,http://localhost:4200
+      - FRONTEND_ORIGIN=*
       - PYTHONPATH=/app/src
-
-  # frontend-react:
-  #   build:
-  #     context: ./frontend-react
-  #   ports:
-  #     - "5173:5173"
-  #   depends_on:
-  #     - backend
-  #   environment:
-  #     - VITE_API_BASE=http://localhost:8000
-  #     - VITE_WS_BASE=ws://localhost:8000
 
   frontend-angular:
     build:
@@ -35,8 +24,8 @@ services:
     volumes:
       - ./frontend-angular:/workspace
     environment:
-      - VITE_API_BASE=http://localhost:8000
-      - VITE_WS_BASE=ws://localhost:8000
+      - VITE_API_BASE=http://192.168.11.115:8000
+      - VITE_WS_BASE=ws://192.168.11.115:8000
 
   mysql:
     image: mysql:8.4

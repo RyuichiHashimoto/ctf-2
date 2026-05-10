@@ -38,6 +38,19 @@ export type PathRow = {
   path: string[];
 };
 
+export type ConfigPreset = {
+  id: string;
+  label: string;
+  augmentation_mode: string;
+  max_nodes: number;
+  top_k: number;
+};
+
+export type AlgorithmOption = {
+  id: string;
+  label: string;
+};
+
 @Injectable({ providedIn: 'root' })
 export class AttackPathService {
   readonly graphData$ = new BehaviorSubject<GraphData | null>(null);
@@ -62,6 +75,24 @@ export class AttackPathService {
   isDebugMode = true;
 
   readonly riskThreshold = 0.21;
+
+  readonly configPresets: ConfigPreset[] = [
+    { id: 'default', label: 'Default（補完なし）', augmentation_mode: 'none', max_nodes: 8, top_k: 5 },
+    { id: 'full_mesh', label: 'Full Mesh（全接続補完）', augmentation_mode: 'full_mesh', max_nodes: 8, top_k: 10 },
+    { id: 'bidirectional', label: 'Bidirectional（双方向補完）', augmentation_mode: 'bidirectional', max_nodes: 8, top_k: 10 },
+  ];
+
+  readonly algorithms: AlgorithmOption[] = [
+    { id: 'exhaustive_unspecified', label: '全経路探索' },
+    { id: 'exhaustive_specified', label: '開始→終了指定' },
+  ];
+
+  selectedAlgorithm = 'exhaustive_unspecified';
+  selectedConfigPreset = 'default';
+  experimentStartNode = '';
+  experimentEndNode = '';
+  experimentRunning = false;
+  experimentError = '';
 
   // private ws: WebSocket | null = null;
   private readonly apiBase = (window as any).VITE_API_BASE || 'http://localhost:8000';
@@ -193,20 +224,14 @@ export class AttackPathService {
   }
 
   async loadUploadedGraphs(): Promise<void> {
-    try {
-      const data = await firstValueFrom(
-        this.http.get<{ files?: { file_id: string; filename: string }[] }>(
-          `${this.apiBase}/graph/uploads`
-        )
-      );
-      this.zone.run(() => {
-        this.uploadedGraphs = data.files || [];
-      });
-    } catch {
-      this.zone.run(() => {
-        this.uploadedGraphs = [];
-      });
-    }
+    const data = await firstValueFrom(
+      this.http.get<{ files?: { file_id: string; filename: string }[] }>(
+        `${this.apiBase}/graph/uploads`
+      )
+    );
+    this.zone.run(() => {
+      this.uploadedGraphs = data.files || [];
+    });
   }
 
   async loadUploadedGraph(fileId: string): Promise<void> {
@@ -223,25 +248,9 @@ export class AttackPathService {
       if (!data.graph) {
         throw new Error('Invalid graph payload');
       }
-      const normalizedGraph: GraphData = {
-        nodes: (data.graph.nodes || []).map((node: any) => ({
-          id: String(node.id),
-          label: node.label || node.id,
-          type: typeof node.type === 'string' ? node.type : node.type?.value || 'unknown',
-          techniques: node.techniques || [],
-          features: node.features || []
-        })),
-        edges: (data.graph.edges || []).map((edge: any) => ({
-          id: String(edge.id || `${edge.source}->${edge.target}`),
-          source: String(edge.source),
-          target: String(edge.target),
-          prob: Number(edge.prob ?? edge.risk ?? 0.1),
-          technique: edge.technique || ''
-        }))
-      };
       this.zone.run(() => {
         this.selectedUploadId = fileId;
-        this.graphData$.next(normalizedGraph);
+        this.graphData$.next(this.normalizeGraphData(data.graph));
         this.graphError = '';
       });
       this.fetchPredictedPaths();
@@ -306,6 +315,79 @@ export class AttackPathService {
         this.isUploading = false;
       });
     }
+  }
+
+  async runExperiment(): Promise<void> {
+    if (!this.selectedUploadId || this.experimentRunning) {
+      return;
+    }
+    this.experimentRunning = true;
+    this.experimentError = '';
+    this.selectedPath$.next(null);
+
+    const preset = this.configPresets.find((p) => p.id === this.selectedConfigPreset) ?? this.configPresets[0];
+    const payload: Record<string, any> = {
+      network_configuration_file_id: this.selectedUploadId,
+      prediction_method: this.selectedAlgorithm,
+      config: {
+        augmentation_mode: preset.augmentation_mode,
+        max_nodes: preset.max_nodes,
+        top_k: preset.top_k,
+      },
+    };
+
+    if (this.selectedAlgorithm === 'exhaustive_specified') {
+      if (this.experimentStartNode) {
+        payload['start_nodes'] = [this.experimentStartNode];
+        this.entryPoint$.next(this.experimentStartNode);
+      }
+      if (this.experimentEndNode) {
+        payload['target_nodes'] = [this.experimentEndNode];
+      }
+    } else {
+      this.entryPoint$.next('');
+    }
+
+    try {
+      const data = await firstValueFrom(
+        this.http.post<{ paths?: PredictedPath[]; graph?: any }>(
+          `${this.apiBase}/pipeline/predict`,
+          payload
+        )
+      );
+      this.zone.run(() => {
+        this.predictedPaths$.next(data.paths || []);
+        if (data.graph) {
+          this.graphData$.next(this.normalizeGraphData(data.graph));
+        }
+        this.experimentRunning = false;
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      this.zone.run(() => {
+        this.experimentError = message || '実験の実行に失敗しました。';
+        this.experimentRunning = false;
+      });
+    }
+  }
+
+  private normalizeGraphData(raw: any): GraphData {
+    return {
+      nodes: (raw.nodes || []).map((node: any) => ({
+        id: String(node.id),
+        label: node.label || node.id,
+        type: typeof node.type === 'string' ? node.type : (node.type?.value || 'unknown'),
+        techniques: node.techniques || [],
+        features: node.features || [],
+      })),
+      edges: (raw.edges || []).map((edge: any) => ({
+        id: String(edge.id || `${edge.source}->${edge.target}`),
+        source: String(edge.source),
+        target: String(edge.target),
+        prob: Number(edge.prob ?? edge.risk ?? 0.1),
+        technique: edge.technique || '',
+      })),
+    };
   }
 
   async loadGraphFromBackend(): Promise<void> {

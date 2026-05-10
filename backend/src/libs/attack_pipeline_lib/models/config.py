@@ -10,10 +10,14 @@ from typing import Any
 class AugmentationMode(str, Enum):
     """グラフ補完方式。
 
-    Attributes:
-        NONE: 補完を行わない。
-        FULL_MESH: 全ノード間を有向エッジで接続する。
-        BIDIRECTIONAL: 既存エッジの逆方向エッジを追加する。
+    Attributes
+    ----------
+    NONE : str
+        補完を行わない。
+    FULL_MESH : str
+        全ノード間を有向エッジで接続する。
+    BIDIRECTIONAL : str
+        既存エッジの逆方向エッジを追加する。
     """
 
     NONE = "none"
@@ -24,11 +28,15 @@ class AugmentationMode(str, Enum):
     def from_value(cls, value: str | None) -> "AugmentationMode":
         """文字列から補完方式へ変換する。
 
-        Args:
-            value: 補完方式を表す文字列。
+        Parameters
+        ----------
+        value : str or None
+            補完方式を表す文字列。
 
-        Returns:
-            対応する補完方式。未指定または不明な値の場合は `NONE`。
+        Returns
+        -------
+        AugmentationMode
+            対応する補完方式。未指定または不明な値の場合は ``NONE``。
         """
         if not value:
             return cls.NONE
@@ -45,12 +53,18 @@ class PipelineConfig:
     Web API 固有の予測方式名やリクエスト検証は含めない。API固有の値は
     ルーティング層で解釈し、ライブラリにはこの設定モデルとして渡す。
 
-    Attributes:
-        augmentation_mode: グラフ補完方式。
-        default_augmented_edge_risk: 補完で追加したエッジに設定する既定リスク。
-        max_nodes: 探索する経路の最大ノード数。
-        top_k: 返却する上位経路数。未指定の場合は制限しない。
-        experiment_id: 実験結果を保存する場合の識別子。
+    Attributes
+    ----------
+    augmentation_mode : AugmentationMode
+        グラフ補完方式。
+    default_augmented_edge_risk : float
+        補完で追加したエッジに設定する既定リスク。
+    max_nodes : int
+        探索する経路の最大ノード数。
+    top_k : int or None
+        返却する上位経路数。未指定の場合は制限しない。
+    experiment_id : str or None
+        実験結果を保存する場合の識別子。
     """
 
     augmentation_mode: AugmentationMode = AugmentationMode.NONE
@@ -63,10 +77,14 @@ class PipelineConfig:
     def from_dict(cls, data: dict[str, Any] | None) -> "PipelineConfig":
         """辞書から設定を生成する。
 
-        Args:
-            data: 設定値を含む辞書。`None` の場合は既定値を使う。
+        Parameters
+        ----------
+        data : dict or None
+            設定値を含む辞書。``None`` の場合は既定値を使う。
 
-        Returns:
+        Returns
+        -------
+        PipelineConfig
             生成したパイプライン設定。
         """
         raw = data or {}

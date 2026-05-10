@@ -20,12 +20,18 @@ def save_pipeline_result(
 ) -> Path:
     """パイプライン実行結果をJSONファイルとして保存する。
 
-    Args:
-        experiment_id: 実験ID。
-        result: 保存する実行結果。
-        result_dir: 保存先ディレクトリ。
+    Parameters
+    ----------
+    experiment_id : str
+        実験ID。ファイル名（``{experiment_id}.json``）に使用する。
+    result : dict of {str: Any}
+        保存する実行結果。
+    result_dir : Path or str, optional
+        保存先ディレクトリ。デフォルトは ``/app/data/pipeline_results``。
 
-    Returns:
+    Returns
+    -------
+    Path
         保存したJSONファイルのパス。
     """
     target_dir = Path(result_dir)
